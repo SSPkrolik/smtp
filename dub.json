@@ -1,8 +1,8 @@
 {
 	"name": "smtp",
-	"description": "A minimal D application.",
-	"copyright": "Copyright © 2014, krolik",
-	"authors": ["krolik"],
+	"description": "SMTP library for D language",
+	"copyright": "Copyright © 2014, Rostyslav Dzinko",
+	"authors": ["Rostyslav Dzinko"],
 	"dependencies": {
 	},
 	"license": "MIT",

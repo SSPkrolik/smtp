@@ -13,7 +13,8 @@ Tested with:
  1. `SmtpClient` class that implements SMTP client.
  2. `SmtpMessage` class that implements SMTP message fields storage.
  3. SSL/TLS encryption support (via `OpenSSL`). Next encryption types implemented:
-   a. SSLv3.
+   
+   1. SSLv3.
 
 ## TODO
 

@@ -5,14 +5,17 @@ import std.socket;
 import std.stdio;
 import std.string;
 
-import deimos.openssl.md5;
+import deimos.openssl.bio;
+import deimos.openssl.conf;
+import deimos.openssl.err;
+import deimos.openssl.ssl;
 
 import smtpmessage;
 
 /++
  Authentication types according to SMTP extensions
  +/
-enum AuthTypes : string {
+enum AuthType : string {
 	PLAIN = "PLAIN",
 	LOGIN = "LOGIN",
 	GSSAPI = "GSSAPI",
@@ -22,6 +25,13 @@ enum AuthTypes : string {
 };
 
 /++
+ Encryption methods for use with SSL
+ +/
+enum EncryptType : uint {
+	SSLv3 = 0,
+}
+
+/++
  SMTP Client implementation.
  +/
 class SmtpClient {
@@ -29,34 +39,55 @@ class SmtpClient {
 private:
 	Socket transport;
 	InternetAddress server;
+	
+	SSL_METHOD *encmethod;
+	SSL *ssl;
+	bool secure;
 
 	/++
 	 High-level method to send whole buffer of data into socket.
 	 +/
-	void sendData(string data, bool tsl=false) {
-		char[] buf = to!(char[])(data);
-		ptrdiff_t sent = 0;
-		while (sent < buf.length) {
-			sent += this.transport.send(buf);
+	bool sendData(in char[] data) {
+		if (!this.secure) {
+			ptrdiff_t sent = 0;
+			while (sent < data.length) {
+				sent += this.transport.send(data);
+			}
+			return true;
+		} else {
+			if (SSL_write(ssl, data, to!(int)(data.length)) < 0) {
+				return false;
+			}
+			return true;
 		}
 	}
 
 	/++
 	 High-level method to receive data from socket as a string.
 	 +/
-	string receiveData(bool tls=false) {
+	string receiveData() {
 		char[1024] buf;
-		ptrdiff_t bytesReceived = this.transport.receive(buf);
-		return to!string(buf[0 .. bytesReceived]);
+		
+		if (!this.secure) {
+			ptrdiff_t bytesReceived = this.transport.receive(buf);
+			return to!string(buf[0 .. bytesReceived]);
+		} else {
+			int ret = SSL_read(ssl, buf, buf.length);
+			if (ret < 0) {
+				return "";
+			} else {
+				return to!string(buf);
+			}
+		}
 	}
 
 	/++
 	 Implementation of request/response pattern for easifying
 	 communication with SMTP server.
 	 +/
-	string getResponse(string command, string suffix="\r\n", bool tls=false) {
-		sendData(command ~ suffix, tls);
-		return receiveData(tls);
+	string getResponse(string command, string suffix="\r\n") {
+		sendData(command ~ suffix);
+		return receiveData();
 	}
 
 public:
@@ -68,6 +99,10 @@ public:
 		} else {
 		}
 		this.transport = new TcpSocket(AddressFamily.INET);
+
+	 	OPENSSL_config("");
+	 	SSL_library_init();
+	 	SSL_load_error_strings();
 	}
 
 	/++
@@ -87,14 +122,60 @@ public:
 	}
 
 	/++
-	 Performs clean disconnection from server.
-	 It is recommended to use disconnect after quit method which signals
-	 SMTP server about end of the session.
+	 Send command indicating that TLS encrypting of socket data stream has started.
 	 +/
-	void disconnect() {
-		this.transport.shutdown(SocketShutdown.BOTH);
-		this.transport.close();
-	}
+	 bool startTls(EncryptType enctype, bool verifyCertificate = false) {
+	 	getResponse("STARTTLS");
+
+	 	// Creating SSL context
+	 	switch (enctype) {
+	 	case EncryptType.SSLv3:
+	 		encmethod = cast(SSL_METHOD*)SSLv3_client_method();
+	 		break;
+	 	default:
+	 		encmethod = cast(SSL_METHOD*)SSLv3_client_method();
+	 	}
+	 	
+	 	SSL_CTX* ctx = SSL_CTX_new(cast(const(SSL_METHOD*))(encmethod));
+	 	if (ctx == null) {
+	 		writeln("ERROR");
+	 		return false;
+	 	}
+
+	 	// Creating secure data stream
+	 	this.ssl = SSL_new(ctx);
+	 	if (ssl == null) {
+	 		writeln("ERROR");
+	 		return false;
+	 	}
+	 	SSL_set_fd(ssl, this.transport.handle);
+
+	 	// Making SSL handshake
+	 	auto ret = SSL_connect(ssl);
+	 	if (ret != 1) {
+	 		writeln("ERROR:", ret);
+	 		return false;
+	 	}
+
+	 	// Get certificate
+	 	X509 *certificate = SSL_get_peer_certificate(ssl);
+	 	if (certificate == null) {
+	 		writeln("CERTIFICATE ERROR");
+	 		return false;
+	 	}
+
+	 	this.secure = true;
+
+	 	// Verify certificate
+	 	if (verifyCertificate) {
+		 	long verificationResult = SSL_get_verify_result(ssl);
+		 	if (verificationResult != X509_V_OK) {
+		 		X509_verify_cert_error_string(verificationResult);
+		 		return false;
+		 	}
+		}
+     	return true;
+	 }
 
 	/++
 	 Initial message to send after connection.
@@ -146,15 +227,6 @@ public:
 	}
 
 	/++
-	 Performs disconnection from server. In one session several mails can be sent,
-	 and it is recommended to do so. quit forces server to close connection with
-	 client.
-	 +/
-	string quit() {
-		return getResponse("QUIT");
-	}
-
-	/++
 	 High-level method for sending messages.
 
 	 Accepts SmtpMessage instance and returns true
@@ -191,4 +263,29 @@ public:
 
 		return true;
 	}
+
+	/++
+	 Performs disconnection from server. In one session several mails can be sent,
+	 and it is recommended to do so. quit forces server to close connection with
+	 client.
+	 +/
+	string quit() {
+		return getResponse("QUIT");
+	}
+
+	/++
+	 Performs clean disconnection from server.
+	 It is recommended to use disconnect after quit method which signals
+	 SMTP server about end of the session.
+	 +/
+	void disconnect() {
+		this.transport.shutdown(SocketShutdown.BOTH);
+		this.transport.close();
+
+		if (secure) {
+			SSL_shutdown(this.ssl);
+			SSL_free(this.ssl);
+		}
+	}
+
 }

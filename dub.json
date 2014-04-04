@@ -1,8 +1,11 @@
 {
 	"name": "smtp",
 	"description": "SMTP library for D language",
+	"homepage": "http://github.com/SSPkrolik/smtp",
 	"copyright": "Copyright © 2014, Rostyslav Dzinko",
+	"targetType": "library",
 	"authors": ["Rostyslav Dzinko"],
+	"systemDependencies": "OpenSSL 0.9.x or 1.0.x",
 	"dependencies": {
 		"openssl": "~master",
 	},

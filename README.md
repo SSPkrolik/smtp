@@ -62,8 +62,9 @@ either using open or encrypted channel.
 import std.stdio;
 import std.string;
 
-import smtpclient;
-import smtpmessage;
+import smtp.client;
+import smtp.message;
+import smtp.ssl;
 
 
 void main() {

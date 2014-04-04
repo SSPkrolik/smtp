@@ -12,8 +12,9 @@ import deimos.openssl.ssl;
  Encryption methods for use with SSL
  +/
 enum EncryptType : uint {
-	SSLv3  = 0,
-	SSLv23 = 1
+	SSLv2  = 0,	// SSL version 2 encryption
+	SSLv23 = 1,	// SSL version 23 encryption
+	SSLv3  = 2,	// SSL version 3 encryption
 }
 
 /++
@@ -47,11 +48,14 @@ public:
 	this(Socket socket, EncryptType enctype = EncryptType.SSLv3) {
 	 	// Creating SSL context
 	 	switch (enctype) {
-	 	case EncryptType.SSLv3:
-	 		encmethod = cast(SSL_METHOD*)SSLv3_client_method();
+	 	case EncryptType.SSLv2:
+	 		encmethod = cast(SSL_METHOD*)SSLv2_client_method();
 	 		break;
 	 	case EncryptType.SSLv23:
 	 		encmethod = cast(SSL_METHOD*)SSLv23_client_method();
+	 		break;
+	 	case EncryptType.SSLv3:
+	 		encmethod = cast(SSL_METHOD*)SSLv3_client_method();
 	 		break;
 	 	default:
 	 		return;

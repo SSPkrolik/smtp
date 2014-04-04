@@ -12,9 +12,11 @@ Tested with:
 
  1. `SmtpClient` class that implements SMTP client.
  2. `SmtpMessage` class that implements SMTP message fields storage.
- 3. `SSL/TLS` encryption support (via `OpenSSL`). Next encryption types implemented:
+ 3. `SSL/TLS` encryption support (via `OpenSSL`). Next encryption methods implemented:
    
-   1. `SSLv3`.
+   1. `SSLv2`.
+   2. `SSLv23`.
+   3. `SSLv3`.
 
 ## TODO
 
@@ -43,6 +45,11 @@ For this, follow the next steps:
      ```bash
      $ dub
      ```
+     to build with dependencies or 
+     ```bash
+     $ dub --force
+     ```
+     after code update for rebuilding.
 
 ## Usage
 

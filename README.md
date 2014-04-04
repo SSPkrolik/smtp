@@ -23,7 +23,7 @@ For this, follow the next steps:
  2. Create your project (or use `dub.json` from your existing one).
  3. Enter `smtp` as a dependency:
 
-     ```
+     ```JSON
      {
      ...
        "dependencies": {
@@ -40,7 +40,7 @@ For this, follow the next steps:
 
 Here's an example of high-level SmtpClient API usage for sending sample email:
 
-```
+```D
 #!/usr/bin/rdmd
 
 import std.stdio;

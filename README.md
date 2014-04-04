@@ -12,12 +12,13 @@ Tested with:
 
  1. `SmtpClient` class that implements SMTP client.
  2. `SmtpMessage` class that implements SMTP message fields storage.
+ 3. SSL/TLS encryption support (via `OpenSSL`). Next encryption types implemented:
+   a. SSLv3.
 
 ## TODO
 
  1. Authentication support.
- 2. SSL/TLS encryption support (via `OpenSSL`).
-
+ 
 ## Installation
 
 You can use `smtp` library for D via `dub` package manager.
@@ -42,7 +43,8 @@ For this, follow the next steps:
 
 ## Usage
 
-Here's an example of high-level `SmtpClient` API usage for sending sample email:
+Here's an example of high-level `SmtpClient` API usage for sending sample email
+either using open or encrypted channel.
 
 ```D
 #!/usr/bin/rdmd
@@ -69,6 +71,9 @@ void main() {
 	); 
 	client.connect(); 	// Perform connection
 	
+	// Uncomment next line to start TLS-encrypted communication with server
+	// client.startTls(EncryptType.SSLv3);
+
 	if (client.send(message)) {  // Check if message was sent successfully
 		writefln("Message: `%s` from <%s> to <%s> sent successfully!",
 			message.subject, message.sender, message.recipients);

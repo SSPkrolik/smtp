@@ -6,6 +6,7 @@ Native SMTP client implementation in D language.
 
 Tested with:
  * `gdc-4.8` on Ubuntu 13.10
+ * `dmd-2.065.0` on OS X 10.9.2
 
 ## Features
 

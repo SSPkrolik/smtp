@@ -6,13 +6,13 @@ Native SMTP client implementation in D language.
 
 ## Features
 
- 1. SmtpClient class that implements SMTP client.
- 2. SmtpMessage class that implements SMTP message fields storage.
+ 1. `SmtpClient` class that implements SMTP client.
+ 2. `SmtpMessage` class that implements SMTP message fields storage.
 
 ## TODO
 
  1. Authentication support.
- 2. SSL/TLS encryption support (via OpenSSL).
+ 2. SSL/TLS encryption support (via `OpenSSL`).
 
 ## Installation
 
@@ -38,7 +38,7 @@ For this, follow the next steps:
 
 ## Usage
 
-Here's an example of high-level SmtpClient API usage for sending sample email:
+Here's an example of high-level `SmtpClient` API usage for sending sample email:
 
 ```D
 #!/usr/bin/rdmd

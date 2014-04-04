@@ -19,6 +19,8 @@ Tested with:
 ## TODO
 
  1. Authentication support.
+ 2. Dedicated clients for popular mail providers.
+ 3. Unit-tests suite.
  
 ## Installation
 

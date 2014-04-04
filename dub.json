@@ -3,6 +3,7 @@
 	"description": "SMTP library for D language",
 	"copyright": "Copyright © 2014, Rostyslav Dzinko",
 	"authors": ["Rostyslav Dzinko"],
+	"targetType": "dynamicLibrary",
 	"dependencies": {
 	},
 	"license": "MIT",

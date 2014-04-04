@@ -1,8 +1,13 @@
+module smtpmessage;
+
 import std.stdio;
 
 /++
- Implements SmtpMessage compositor.
- Allows to get string representation of message and also send it via SmtpClient.
+  Implements SmtpMessage compositor.
+  Allows to get string representation of message and also send it via SmtpClient.
+
+  SmtpMessage is used by `SmtpClient.send` high-level method in order to compose
+  and send mail via SMTP.
  +/
 class SmtpMessage {
 
@@ -15,18 +20,18 @@ private:
 
 public:
 	this(string sender, string[] recipients, string subject = "", string message = "", string replyTo = "") {
-		this.m_sender = sender.dup;
+		this.m_sender = sender;
 		this.m_recipients = recipients.dup;
-		this.m_subject = subject.dup;
-		this.m_message = message.dup;
-		this.m_replyTo = replyTo.dup;
+		this.m_subject = subject;
+		this.m_message = message;
+		this.m_replyTo = replyTo;
 	}
 
-	@property string sender() { return m_sender.dup; }
-	@property string[] recipients() { return m_recipients.dup; }
-	@property string message() { return m_message.dup; }
-	@property string subject() { return m_subject.dup; }
-	@property string replyTo() { return m_replyTo.dup; }
+	const @property string sender() { return m_sender; }
+	const @property string[] recipients() { return m_recipients.dup; }
+	const @property string message() { return m_message; }
+	const @property string subject() { return m_subject; }
+	const @property string replyTo() { return m_replyTo; }
 
 	override string toString() {
 		return "";

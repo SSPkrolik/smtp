@@ -5,6 +5,8 @@ import std.socket;
 import std.stdio;
 import std.string;
 
+import deimos.openssl.md5;
+
 import smtpmessage;
 
 /++
@@ -31,7 +33,7 @@ private:
 	/++
 	 High-level method to send whole buffer of data into socket.
 	 +/
-	void sendData(string data) {
+	void sendData(string data, bool tsl=false) {
 		char[] buf = to!(char[])(data);
 		ptrdiff_t sent = 0;
 		while (sent < buf.length) {
@@ -42,7 +44,7 @@ private:
 	/++
 	 High-level method to receive data from socket as a string.
 	 +/
-	string receiveData() {
+	string receiveData(bool tls=false) {
 		char[1024] buf;
 		ptrdiff_t bytesReceived = this.transport.receive(buf);
 		return to!string(buf[0 .. bytesReceived]);
@@ -52,9 +54,9 @@ private:
 	 Implementation of request/response pattern for easifying
 	 communication with SMTP server.
 	 +/
-	string getResponse(string command, string suffix="\r\n") {
-		sendData(command ~ suffix);
-		return receiveData();
+	string getResponse(string command, string suffix="\r\n", bool tls=false) {
+		sendData(command ~ suffix, tls);
+		return receiveData(tls);
 	}
 
 public:

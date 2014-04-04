@@ -39,7 +39,7 @@ class SmtpClient {
 private:
 	Socket transport;
 	InternetAddress server;
-	
+
 	SSL_METHOD *encmethod;
 	SSL *ssl;
 	bool secure;
@@ -124,8 +124,8 @@ public:
 	/++
 	 Send command indicating that TLS encrypting of socket data stream has started.
 	 +/
-	 bool startTls(EncryptType enctype, bool verifyCertificate = false) {
-	 	getResponse("STARTTLS");
+	bool startTls(EncryptType enctype, bool verifyCertificate = false) {
+		getResponse("STARTTLS");
 
 	 	// Creating SSL context
 	 	switch (enctype) {
@@ -175,7 +175,7 @@ public:
 		 	}
 		}
      	return true;
-	 }
+	}
 
 	/++
 	 Initial message to send after connection.

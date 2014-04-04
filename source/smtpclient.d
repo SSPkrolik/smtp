@@ -8,6 +8,18 @@ import std.string;
 import smtpmessage;
 
 /++
+ Authentication types according to SMTP extensions
+ +/
+enum AuthTypes : string {
+	PLAIN = "PLAIN",
+	LOGIN = "LOGIN",
+	GSSAPI = "GSSAPI",
+	DIGEST_MD5 = "DIGEST-MD5",
+	MD5 = "MD5",
+	CRAM_MD5 = "CRAM-MD5"
+};
+
+/++
  SMTP Client implementation.
  +/
 class SmtpClient {
@@ -46,6 +58,7 @@ private:
 	}
 
 public:
+
 	this(string host, ushort port = 25) {
 		auto addr = new InternetHost;
 		if (addr.getHostByName(host)) {

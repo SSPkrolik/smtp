@@ -1,27 +1,23 @@
-module smtpclient;
+module smtp.client;
 
 import std.conv;
 import std.socket;
 import std.stdio;
 import std.string;
 
-import deimos.openssl.bio;
-import deimos.openssl.conf;
-import deimos.openssl.err;
-import deimos.openssl.ssl;
-
-import smtpmessage;
+import smtp.message;
+import smtp.ssl;
 
 /++
  Authentication types according to SMTP extensions
  +/
 enum AuthType : string {
-	PLAIN = "PLAIN",
-	LOGIN = "LOGIN",
-	GSSAPI = "GSSAPI",
+	PLAIN      = "PLAIN",
+	LOGIN      = "LOGIN",
+	GSSAPI     = "GSSAPI",
 	DIGEST_MD5 = "DIGEST-MD5",
-	MD5 = "MD5",
-	CRAM_MD5 = "CRAM-MD5"
+	MD5        = "MD5",
+	CRAM_MD5   = "CRAM-MD5"
 };
 
 /++
@@ -62,24 +58,15 @@ struct SmtpReply {
 };
 
 /++
- Encryption methods for use with SSL
- +/
-enum EncryptType : uint {
-	SSLv3 = 0,
-}
-
-/++
  SMTP Client implementation.
  +/
 class SmtpClient {
 
 private:
-	Socket transport;
-	InternetAddress server;
-
-	SSL_METHOD *encmethod;
-	SSL *ssl;
 	bool secure;
+	InternetAddress server;
+	Socket transport;
+	SocketSSL secureTransport;
 
 	/++
 	 High-level method to send whole buffer of data into socket.
@@ -92,10 +79,7 @@ private:
 			}
 			return true;
 		} else {
-			if (SSL_write(ssl, data.ptr, to!(int)(data.length)) < 0) {
-				return false;
-			}
-			return true;
+			return secureTransport.write(data) ? true : false;
 		}
 	}
 
@@ -104,22 +88,18 @@ private:
 	 +/
 	string receiveData() {
 		char[1024] buf;
-		
 		if (!this.secure) {
 			ptrdiff_t bytesReceived = this.transport.receive(buf);
 			//write("S: ", to!string(buf[0 .. bytesReceived]));
 			return to!string(buf[0 .. bytesReceived]);
 		} else {
-			int ret = SSL_read(ssl, buf.ptr, buf.length);
-			if (ret < 0) {
-				return "";
-			} else {
-				//write("S: ", to!string(buf));
-				return to!string(buf);
-			}
+			return secureTransport.read();
 		}
 	}
 
+	/++
+	 Parses server reply and converts it to 'SmtpReply' structure.
+	 +/
 	const SmtpReply parseReply(string rawReply) {
 		return SmtpReply(
 			to!uint(rawReply[0 .. 3]),
@@ -145,10 +125,6 @@ public:
 		} else {
 		}
 		this.transport = new TcpSocket(AddressFamily.INET);
-
-	 	OPENSSL_config("");
-	 	SSL_library_init();
-	 	SSL_load_error_strings();
 	}
 
 	/++
@@ -161,6 +137,7 @@ public:
 	/++
 	 Performs socket connection establishment.
 	 connect is the first method to be called after SmtpClient instantiation.
+	 If reply.code == 220, then connection was set successfully.
 	 +/
 	SmtpReply connect() {
 		this.transport.connect(this.server);
@@ -170,58 +147,11 @@ public:
 	/++
 	 Send command indicating that TLS encrypting of socket data stream has started.
 	 +/
-	bool startTls(EncryptType enctype, bool verifyCertificate = false) {
-		getResponse("STARTTLS");
-
-	 	// Creating SSL context
-	 	switch (enctype) {
-	 	case EncryptType.SSLv3:
-	 		encmethod = cast(SSL_METHOD*)SSLv3_client_method();
-	 		break;
-	 	default:
-	 		encmethod = cast(SSL_METHOD*)SSLv3_client_method();
-	 	}
-	 	
-	 	SSL_CTX* ctx = SSL_CTX_new(cast(const(SSL_METHOD*))(encmethod));
-	 	if (ctx == null) {
-	 		writeln("ERROR");
-	 		return false;
-	 	}
-
-	 	// Creating secure data stream
-	 	this.ssl = SSL_new(ctx);
-	 	if (ssl == null) {
-	 		writeln("ERROR");
-	 		return false;
-	 	}
-	 	SSL_set_fd(ssl, this.transport.handle);
-
-	 	// Making SSL handshake
-	 	auto ret = SSL_connect(ssl);
-	 	if (ret != 1) {
-	 		writeln("ERROR:", ret);
-	 		return false;
-	 	}
-
-	 	// Get certificate
-	 	X509 *certificate = SSL_get_peer_certificate(ssl);
-	 	if (certificate == null) {
-	 		writeln("CERTIFICATE ERROR");
-	 		return false;
-	 	}
-
-	 	this.secure = true;
-
-	 	// Verify certificate
-	 	if (verifyCertificate) {
-		 	long verificationResult = SSL_get_verify_result(ssl);
-		 	if (verificationResult != X509_V_OK) {
-		 		X509_verify_cert_error_string(verificationResult);
-		 		return false;
-		 	}
-		}
-		
-		return true;
+	bool startTls(EncryptType enctype = EncryptType.SSLv3, bool verifyCertificate = false) {
+		writeln(getResponse("STARTTLS"));
+		secureTransport = new SocketSSL(transport, enctype);
+		secure = verifyCertificate ? secureTransport.ready && secureTransport.certificateIsVerified : secureTransport.ready;
+		return secure;
 	}
 
 	/++
@@ -328,11 +258,6 @@ public:
 	void disconnect() {
 		this.transport.shutdown(SocketShutdown.BOTH);
 		this.transport.close();
-
-		if (secure) {
-			SSL_shutdown(this.ssl);
-			SSL_free(this.ssl);
-		}
 	}
 
 }

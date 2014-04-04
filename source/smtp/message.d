@@ -1,4 +1,4 @@
-module smtpmessage;
+module smtp.message;
 
 import std.stdio;
 

@@ -19,22 +19,22 @@ Native SMTP client implementation in D language.
 You can use `smtp` library for D via `dub` package manager.
 For this, follow the next steps:
  
- 1. Download dub from code.dlang.org (if you still didn't install).
+ 1. Download dub from [DLang site](http://code.dlang.org) (if you still don't have it installed).
  2. Create your project (or use `dub.json` from your existing one).
- 3. Enter `smtp` as a dependency:
+ 3. Add `smtp` as a dependency:
 
      ```JSON
      {
-     ...
        "dependencies": {
-       		...
        		"smtp": ">=0.0.3",
-       		...
        }
-     ...
      }
      ```
+ 4. Use dub to build project:
 
+     ```bash
+     $ dub
+     ```
 
 ## Usage
 

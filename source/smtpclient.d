@@ -25,6 +25,43 @@ enum AuthType : string {
 };
 
 /++
+ SMTP server reply codes, RFC 2921, April 2001
+ +/
+enum ReplyCode : uint {
+	GREETINGS                         = 220,
+	OK                                = 250,
+	SYNTAX_ERROR                      = 500,
+	SYNTAX_ERROR_PARAMETERS           = 501,
+    COMMAND_NOT_IMPLEMENTED           = 502,
+    BAD_SEQUENCE                      = 503,
+    COMMAND_PARAMETER_NOT_IMPLEMENTED = 504,
+    STATUS_REPLY                      = 211,
+    HELP_REPLY                        = 214,
+    SERVICE_READY                     = 220,
+    SERVICE_CLOSING_CHANNEL           = 221,
+    SERVICE_NOT_AVAILABLE             = 421,
+    FORWARDING                        = 251,
+    VERIFICATION_FAILED               = 252,
+    MAILBOX_BUSY                      = 450,
+    MAILBOX_NO_ACCESS                 = 550,
+    ACTION_ABORTED                    = 451,
+    TRY_FORWARDING                    = 551,
+    INSUFFICIENT_STORAGE              = 452,
+    EXCEEDED_STORAGE                  = 552,
+    MAILBOX_NAME_NOT_ALLOWED          = 553,
+    DATA_START                        = 354,
+    TRANSACTION_FAILED                = 554
+};
+
+/++
+ SMTP Reply
+ +/
+struct SmtpReply {
+	uint code;
+	string reply;
+};
+
+/++
  Encryption methods for use with SSL
  +/
 enum EncryptType : uint {
@@ -55,7 +92,7 @@ private:
 			}
 			return true;
 		} else {
-			if (SSL_write(ssl, data, to!(int)(data.length)) < 0) {
+			if (SSL_write(ssl, data.ptr, to!(int)(data.length)) < 0) {
 				return false;
 			}
 			return true;
@@ -70,16 +107,25 @@ private:
 		
 		if (!this.secure) {
 			ptrdiff_t bytesReceived = this.transport.receive(buf);
+			//write("S: ", to!string(buf[0 .. bytesReceived]));
 			return to!string(buf[0 .. bytesReceived]);
 		} else {
-			int ret = SSL_read(ssl, buf, buf.length);
+			int ret = SSL_read(ssl, buf.ptr, buf.length);
 			if (ret < 0) {
 				return "";
 			} else {
+				//write("S: ", to!string(buf));
 				return to!string(buf);
 			}
 		}
 	}
+
+	const SmtpReply parseReply(string rawReply) {
+		return SmtpReply(
+			to!uint(rawReply[0 .. 3]),
+			strip(rawReply[4 .. $]).idup
+		);
+	} 
 
 	/++
 	 Implementation of request/response pattern for easifying
@@ -116,9 +162,9 @@ public:
 	 Performs socket connection establishment.
 	 connect is the first method to be called after SmtpClient instantiation.
 	 +/
-	void connect() {
+	SmtpReply connect() {
 		this.transport.connect(this.server);
-		receiveData();
+		return parseReply(receiveData());
 	}
 
 	/++
@@ -183,8 +229,8 @@ public:
 	 Nevertheless it is recommended to use `ehlo()` instead of this method
 	 in order to get more information about SMTP server configuration.
 	 +/
-	string helo() {
-		return getResponse("HELO localhost");
+	SmtpReply helo() {
+		return parseReply(getResponse("HELO localhost"));
 	}
 
 	/++

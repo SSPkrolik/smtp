@@ -23,6 +23,7 @@ For this, follow the next steps:
  2. Create your project (or use `dub.json` from your existing one).
  3. Enter `smtp` as a dependency:
 
+     ```
      {
      ...
        "dependencies": {
@@ -32,6 +33,7 @@ For this, follow the next steps:
        }
      ...
      }
+     ```
 
 
 ## Usage

@@ -4,6 +4,9 @@ Current version: 0.0.3
 
 Native SMTP client implementation in D language.
 
+Tested with:
+ * `gdc-4.8` on Ubuntu 13.10
+
 ## Features
 
  1. `SmtpClient` class that implements SMTP client.

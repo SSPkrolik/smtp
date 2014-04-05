@@ -69,6 +69,11 @@ You can find low-level API usage example projects in `examples` folder:
     
     Similar to `lowlevel-logged` but also shows how to check if errors
     happened during mail sending session.
+ 
+ 4. `highlevel`
+
+    Shows the simples chain of routines to send e-mail via unencrypted channel.
+    Also you can find this example in this wiki page below.
 
 You can enter folder `examples/<example-project-name>` and perform `$ dub` in order
 to run and test example.

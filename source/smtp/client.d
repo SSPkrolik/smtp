@@ -11,7 +11,7 @@ import smtp.ssl;
 /++
  Authentication types according to SMTP extensions
  +/
-enum AuthType : string {
+enum SmtpAuthType : string {
 	PLAIN      = "PLAIN",
 	LOGIN      = "LOGIN",
 	GSSAPI     = "GSSAPI",
@@ -23,36 +23,41 @@ enum AuthType : string {
 /++
  SMTP server reply codes, RFC 2921, April 2001
  +/
-enum ReplyCode : uint {
-	GREETINGS                         = 220,
-	OK                                = 250,
-	SYNTAX_ERROR                      = 500,
-	SYNTAX_ERROR_PARAMETERS           = 501,
-	COMMAND_NOT_IMPLEMENTED           = 502,
-	BAD_SEQUENCE                      = 503,
-	COMMAND_PARAMETER_NOT_IMPLEMENTED = 504,
-	STATUS_REPLY                      = 211,
-	HELP_REPLY                        = 214,
-	SERVICE_READY                     = 220,
-	SERVICE_CLOSING_CHANNEL           = 221,
-	SERVICE_NOT_AVAILABLE             = 421,
-	FORWARDING                        = 251,
-	VERIFICATION_FAILED               = 252,
-	MAILBOX_BUSY                      = 450,
-	MAILBOX_NO_ACCESS                 = 550,
-	ACTION_ABORTED                    = 451,
-	TRY_FORWARDING                    = 551,
-	INSUFFICIENT_STORAGE              = 452,
-	EXCEEDED_STORAGE                  = 552,
-	MAILBOX_NAME_NOT_ALLOWED          = 553,
-	DATA_START                        = 354,
-	TRANSACTION_FAILED                = 554
+enum SmtpReplyCode : uint {
+	HELP_STATUS     = 211,  // Information reply
+	HELP            = 214,  // Information reply
+
+	READY           = 220,  // After connection is established
+	QUIT            = 221,  // After connected aborted
+	OK              = 250,  // Transaction success
+	FORWARD         = 251,  // Non-local user, message is forwarded
+	VRFY_FAIL       = 252,  // Verification failed (still attempt to deliver)
+
+	DATA_START      = 354,  // Server starts to accept mail data
+
+	NA              = 421,  // Not Available. Shutdown must follow after this reply
+	BUSY            = 450,  // Mail action failed.
+	ABORTED         = 451,  // Action aborted (internal server error)
+	STORAGE         = 452,  // Not enough system storage on server
+
+	SYNTAX          = 500,  // Command syntax error
+	SYNTAX_PARAM    = 501,  // Command parameter syntax error
+	NI              = 502,  // Command not implemented
+	BAD_SEQUENCE    = 503,  // This command breaks specified allowed sequences
+	NI_PARAM        = 504,  // Command parameter not implemented
+	
+	MAILBOX         = 550,  // Mailbox is not found (for different reasons)
+	TRY_FORWARD     = 551,  // Non-local user, forwarding is needed
+	MAILBOX_STORAGE = 552,  // Storage for mailbox exceeded
+	MAILBOX_NAME    = 553,  // Unallowed name for the mailbox
+	FAIL            = 554   // Transaction fail
 };
 
 /++
  SMTP Reply
  +/
 struct SmtpReply {
+	bool success;
 	uint code;
 	string reply;
 };
@@ -90,7 +95,6 @@ private:
 		char[1024] buf;
 		if (!this.secure) {
 			ptrdiff_t bytesReceived = this.transport.receive(buf);
-			//write("S: ", to!string(buf[0 .. bytesReceived]));
 			return to!string(buf[0 .. bytesReceived]);
 		} else {
 			return secureTransport.read();
@@ -99,12 +103,22 @@ private:
 
 	/++
 	 Parses server reply and converts it to 'SmtpReply' structure.
+	 If we receive 421 code we are forced to shutdown client (acording to RFC 2821).
 	 +/
-	const SmtpReply parseReply(string rawReply) {
-		return SmtpReply(
+	SmtpReply parseReply(string rawReply) {
+		auto reply = SmtpReply(
+			true,
 			to!uint(rawReply[0 .. 3]),
 			strip(rawReply[4 .. $]).idup
 		);
+		// Syntax and implementation errors check
+		if (reply.code >= 400) {
+			reply.success = false;			
+		}
+		if (reply.code == SmtpReplyCode.NA) {
+			disconnect();
+		}
+		return reply;
 	} 
 
 	/++
@@ -121,10 +135,10 @@ public:
 	this(string host, ushort port = 25) {
 		auto addr = new InternetHost;
 		if (addr.getHostByName(host)) {
-			this.server = new InternetAddress(addr.addrList[0], port);
+			server = new InternetAddress(addr.addrList[0], port);
 		} else {
 		}
-		this.transport = new TcpSocket(AddressFamily.INET);
+		transport = new TcpSocket(AddressFamily.INET);
 	}
 
 	/++
@@ -137,10 +151,13 @@ public:
 	/++
 	 Performs socket connection establishment.
 	 connect is the first method to be called after SmtpClient instantiation.
-	 If reply.code == 220, then connection was set successfully.
 	 +/
 	SmtpReply connect() {
-		this.transport.connect(this.server);
+		try {
+			this.transport.connect(this.server);
+		} catch (SocketOSException) {
+			return SmtpReply(false, 0, "");
+		}
 		return parseReply(receiveData());
 	}
 
@@ -160,15 +177,17 @@ public:
 	 in order to get more information about SMTP server configuration.
 	 +/
 	SmtpReply helo() {
-		return parseReply(getResponse("HELO localhost"));
+		SmtpReply reply = parseReply(getResponse("HELO localhost"));
+		return reply;
 	}
 
 	/++
 	 Initial message to send after connection.
 	 Retrieves information about SMTP server configuration
 	 +/
-	string ehlo() {
-		return getResponse("EHLO localhost");
+	SmtpReply ehlo() {
+		SmtpReply reply = parseReply(getResponse("EHLO localhost"));
+		return reply;
 	}
 
 	/++

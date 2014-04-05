@@ -20,7 +20,6 @@ Tested with:
    * `SSLv2`.
    * `SSLv23`.
    * `SSLv3`.
-
  5. Authentication support which includes the next methods:
 
    * PLAIN

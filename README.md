@@ -53,6 +53,25 @@ For this, follow the next steps:
 
 ## Usage
 
+You can find low-level API usage example projects in `examples` folder:
+
+ 1. `lowlevel`
+    Shows the simplest chain of routines to send e-mail message via
+    unencrypted channel.
+ 2. `lowlevel-logged`
+    Similar to `lowlevel` but also demonstrates possibities of `SmtpReply`
+    structure to get and log messages from SMTP server.
+ 3. `lowlevel-safe`
+    Similar to `lowlevel-logged` but also shows how to check if errors
+    happened during mail sending session.
+
+You can enter folder `examples/<example-project-name>` and perform `$ dub` in order
+to run and test example.
+
+If you're a `Linux` or `OS X` user, you can use standard `sendmail` utility
+to get SMTP server up and running on your local host. For that just open
+new terminal tab or window and type `sendmail`.
+
 Here's an example of high-level `SmtpClient` API usage for sending sample email
 either using open or encrypted channel.
 

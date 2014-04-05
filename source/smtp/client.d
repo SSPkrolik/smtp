@@ -1,24 +1,14 @@
 module smtp.client;
 
+import std.base64;
 import std.conv;
 import std.socket;
 import std.stdio;
 import std.string;
 
+import smtp.auth;
 import smtp.message;
 import smtp.ssl;
-
-/++
- Authentication types according to SMTP extensions
- +/
-enum SmtpAuthType : string {
-	PLAIN      = "PLAIN",
-	LOGIN      = "LOGIN",
-	GSSAPI     = "GSSAPI",
-	DIGEST_MD5 = "DIGEST-MD5",
-	MD5        = "MD5",
-	CRAM_MD5   = "CRAM-MD5"
-};
 
 /++
  SMTP server reply codes, RFC 2921, April 2001
@@ -29,23 +19,32 @@ enum SmtpReplyCode : uint {
 
 	READY           = 220,  // After connection is established
 	QUIT            = 221,  // After connected aborted
+	AUTH_SUCCESS    = 235,  // Authentication succeeded
 	OK              = 250,  // Transaction success
 	FORWARD         = 251,  // Non-local user, message is forwarded
 	VRFY_FAIL       = 252,  // Verification failed (still attempt to deliver)
 
+	AUTH_CONTINUE   = 334,  // Answer to AUTH <method> prompting to send auth data
 	DATA_START      = 354,  // Server starts to accept mail data
 
 	NA              = 421,  // Not Available. Shutdown must follow after this reply
-	BUSY            = 450,  // Mail action failed.
+	NEED_PASSWORD   = 435,  // Password transition is needed
+	BUSY            = 450,  // Mail action failed
 	ABORTED         = 451,  // Action aborted (internal server error)
 	STORAGE         = 452,  // Not enough system storage on server
+	TLS             = 454,  // TLS unavailable | Temporary Auth fail
 
-	SYNTAX          = 500,  // Command syntax error
+	SYNTAX          = 500,  // Command syntax error | Too long auth command line
 	SYNTAX_PARAM    = 501,  // Command parameter syntax error
 	NI              = 502,  // Command not implemented
 	BAD_SEQUENCE    = 503,  // This command breaks specified allowed sequences
 	NI_PARAM        = 504,  // Command parameter not implemented
 	
+	AUTH_REQUIRED   = 530,  // Authentication required
+	AUTH_TOO_WEAK   = 534,  // Need stronger authentication type
+	AUTH_CRED       = 535,  // Wrong authentication credentials
+	AUTH_ENCRYPTION = 538,  // Encryption reqiured for current authentication type
+
 	MAILBOX         = 550,  // Mailbox is not found (for different reasons)
 	TRY_FORWARD     = 551,  // Non-local user, forwarding is needed
 	MAILBOX_STORAGE = 552,  // Storage for mailbox exceeded
@@ -71,8 +70,9 @@ struct SmtpReply {
  +/
 class SmtpClient {
 
-private:
+protected:
 	bool secure;
+	bool _authenticated;
 	InternetAddress server;
 	Socket transport;
 	SocketSSL secureTransport;
@@ -113,7 +113,7 @@ private:
 		auto reply = SmtpReply(
 			true,
 			to!uint(rawReply[0 .. 3]),
-			(rawReply[4 .. $]).idup
+			(rawReply[3 .. $]).idup
 		);
 		// Syntax and implementation errors check
 		if (reply.code >= 400) {
@@ -145,6 +145,9 @@ public:
 		transport = new TcpSocket(AddressFamily.INET);
 	}
 
+	@property bool isSecure() {
+		return secure;
+	}
 	/++
 	 Return SMTP server address
 	 +/
@@ -168,11 +171,13 @@ public:
 	/++
 	 Send command indicating that TLS encrypting of socket data stream has started.
 	 +/
-	bool startTls(EncryptType enctype = EncryptType.SSLv3, bool verifyCertificate = false) {
-		writeln(getResponse("STARTTLS"));
-		secureTransport = new SocketSSL(transport, enctype);
-		secure = verifyCertificate ? secureTransport.ready && secureTransport.certificateIsVerified : secureTransport.ready;
-		return secure;
+	SmtpReply startTls(EncryptType enctype = EncryptType.SSLv3, bool verifyCertificate = false) {
+		auto response = parseReply(getResponse("STARTTLS"));
+		if (response.success) {
+			secureTransport = new SocketSSL(transport, enctype);
+			secure = verifyCertificate ? secureTransport.ready && secureTransport.certificateIsVerified : secureTransport.ready;
+		}
+		return response;
 	}
 
 	/++
@@ -181,8 +186,7 @@ public:
 	 in order to get more information about SMTP server configuration.
 	 +/
 	SmtpReply helo() {
-		SmtpReply reply = parseReply(getResponse("HELO localhost"));
-		return reply;
+		return parseReply(getResponse("HELO " ~ transport.hostName));
 	}
 
 	/++
@@ -190,8 +194,42 @@ public:
 	 Retrieves information about SMTP server configuration
 	 +/
 	SmtpReply ehlo() {
-		SmtpReply reply = parseReply(getResponse("EHLO localhost"));
-		return reply;
+		return parseReply(getResponse("EHLO " ~ transport.hostName));
+	}
+
+	/++
+	 Perfrom authentication process in one method (high-level) instead
+	 of sending AUTH and auth data in several messages
+	 +/
+	 SmtpReply authenticate(A...)(in SmtpAuthType authType, A params) {
+	 	switch (authType) {
+	 	case SmtpAuthType.PLAIN:
+	 		static if (params.length) {
+	 			static if (params.length == 2) {
+	 				auth(authType);
+	 				return authPlain(params[0], params[1]);
+	 			}
+	 		}
+	 	default:
+	 		return SmtpReply(false, 0, "");
+	 	}
+	 }
+
+	/++
+	 Perform authentication (according to RFC 4954)
+	 +/
+	SmtpReply auth(in SmtpAuthType authType) {
+		return parseReply(getResponse("AUTH " ~ authType));
+	}
+
+	/++
+	 Send base64-encoded authentication data according to RFC 2245.
+	 Need to be performed after `data` method call;
+	 +/
+	SmtpReply authPlain(string login, string password) {
+		string data = login ~ "\0" ~ login ~ "\0" ~ password;
+		const(char)[] encoded = Base64.encode(cast(ubyte[])data);
+		return parseReply(getResponse(to!string(encoded)));
 	}
 
 	/++
@@ -199,7 +237,7 @@ public:
 	 This can be called either after connect or after helo/ehlo methods call.
 	 +/
 	SmtpReply mail(string sender) {
-		return parseReply(getResponse("MAIL FROM:" ~ sender));
+		return parseReply(getResponse("MAIL FROM:<" ~ sender ~ ">"));
 	}
 
 	/++
@@ -207,7 +245,7 @@ public:
 	 after 
 	 +/
 	SmtpReply rcpt(string to) {
-		return parseReply(getResponse("RCPT TO:" ~ to));
+		return parseReply(getResponse("RCPT TO:<" ~ to ~ ">"));
 	}
 
 	/++
@@ -239,24 +277,12 @@ public:
 	 method calls chain.
 	 +/
 	bool send(in SmtpMessage mail) {
-		auto rawBody = "From: \"\" <" ~ mail.sender ~ ">\r\n";
-		if (!this.mail(mail.sender).success) return false;
-		
+		if (!this.mail(mail.sender.address).success) return false;
 		foreach (i, recipient; mail.recipients) {
-			auto answer = getResponse("RCPT TO:"~recipient);
-			if (icmp(answer[0 .. 3], "250") != 0) return false;
-
-			if (i == 0) {
-				rawBody ~= "To: \"\" <" ~ mail.recipients[i] ~ ">\r\n";
-			} else {
-				rawBody ~= "Cc: \"\" <" ~ mail.recipients[i] ~ ">\r\n";
-			}
+			if (!this.rcpt(recipient.address).success) return false;
 		}
-		
 		if (!this.data().success) return false;
-		rawBody ~= "Subject: " ~ mail.subject ~ "\r\n\r\n" ~ mail.message;
-		if (!this.dataBody(rawBody).success) return false;
-		
+		if (!this.dataBody(mail.toString()).success) return false;
 		return true;
 	}
 

@@ -9,9 +9,9 @@ import smtp.ssl;
 
 
 void main() {
-	auto message = new SmtpMessage(
-		"from@example.com",                     // Sender (put some existing address here)
-		["to1@example.com", "to2@example.com"], // Recipients (put some existing addresses here)
+	auto message = SmtpMessage(
+		Recipient("from@example.com", "Name"),  // Sender (put some existing address here)
+		[Recipient("to1@example.com", "Name")], // Recipients (put some existing addresses here)
 		"Test message subject",                 // Subject (topic)
 		"This is a test message body",          // Body of the message
 		""                                      // Reply-to still does not work

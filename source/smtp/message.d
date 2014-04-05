@@ -1,6 +1,16 @@
 module smtp.message;
 
-import std.stdio;
+import std.string;
+
+/++
+ Struct that holds name and address of a person holding e-mail box
+  and is capable of sending messages.
+ +/
+
+struct Recipient {
+	string address;
+	string name;
+}
 
 /++
   Implements SmtpMessage compositor.
@@ -9,31 +19,25 @@ import std.stdio;
   SmtpMessage is used by `SmtpClient.send` high-level method in order to compose
   and send mail via SMTP.
  +/
-class SmtpMessage {
+struct SmtpMessage {
+	Recipient sender;
+	Recipient[] recipients;
+	string subject;
+	string message;
+	string replyTo;
 
-private:
-	string m_sender;
-	string[] m_recipients;
-	string m_message;
-	string m_subject;
-	string m_replyTo;
+	const string toString() {
+		string templateCc = "Cc:<%s> \"%s\"";
+		string templateResult = "From:<%s> \"%s\"\r\nTo:<%s> \"%s\"\r\n%s\r\nSubject:%s\r\nReply-To:%s\r\n\r\n%s";
+		string cc = "";
+		if (recipients.length > 1) {
+			foreach(recipient; recipients) {
+				cc ~= format(templateCc, recipient.address, recipient.name);
+			}
+		} else {
+			cc = "Cc:";
+		}
 
-public:
-	this(string sender, string[] recipients, string subject = "", string message = "", string replyTo = "") {
-		this.m_sender = sender;
-		this.m_recipients = recipients.dup;
-		this.m_subject = subject;
-		this.m_message = message;
-		this.m_replyTo = replyTo;
-	}
-
-	const @property string sender() { return m_sender; }
-	const @property string[] recipients() { return m_recipients.dup; }
-	const @property string message() { return m_message; }
-	const @property string subject() { return m_subject; }
-	const @property string replyTo() { return m_replyTo; }
-
-	override string toString() {
-		return "";
+		return format(templateResult, sender.address, sender.name, recipients[0].address, recipients[0].name, cc, subject, replyTo, message);
 	}
 }

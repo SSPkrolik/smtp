@@ -14,12 +14,14 @@ import deimos.openssl.ssl;
  Encryption methods for use with SSL
  +/
 enum EncryptType : uint {
-	SSLv2   = 0, // SSL version 2 encryption
-	SSLv23  = 1, // SSL version 23 encryption
-	SSLv3   = 2, // SSL version 3 encryption
+	None    = 0, // No encryption is used
 
-	TLSv1   = 3, // TLS version 1 encryption
-	TLSv1_1 = 4, // TLS version 1.1 encryption
+	SSLv2   = 1, // SSL version 2 encryption
+	SSLv23  = 2, // SSL version 23 encryption
+	SSLv3   = 3, // SSL version 3 encryption
+
+	TLSv1   = 4, // TLS version 1 encryption
+	TLSv1_1 = 5, // TLS version 1.1 encryption
 }
 
 /++

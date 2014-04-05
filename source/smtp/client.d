@@ -198,24 +198,6 @@ public:
 	}
 
 	/++
-	 Perfrom authentication process in one method (high-level) instead
-	 of sending AUTH and auth data in several messages
-	 +/
-	 SmtpReply authenticate(A...)(in SmtpAuthType authType, A params) {
-	 	switch (authType) {
-	 	case SmtpAuthType.PLAIN:
-	 		static if (params.length) {
-	 			static if (params.length == 2) {
-	 				auth(authType);
-	 				return authPlain(params[0], params[1]);
-	 			}
-	 		}
-	 	default:
-	 		return SmtpReply(false, 0, "");
-	 	}
-	 }
-
-	/++
 	 Perform authentication (according to RFC 4954)
 	 +/
 	SmtpReply auth(in SmtpAuthType authType) {

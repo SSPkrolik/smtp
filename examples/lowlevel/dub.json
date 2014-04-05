@@ -1,0 +1,9 @@
+{
+	"name": "lowlevel",
+	"description": "The simplest low-level message sending example using smtp library.",
+	"copyright": "Copyright © 2014, Rostyslav Dzinko",
+	"authors": ["Rostyslav Dzinko"],
+	"dependencies": {
+		"smtp": { "version": "~master", "path": "../../" }
+	}
+}

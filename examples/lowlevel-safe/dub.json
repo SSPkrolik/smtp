@@ -1,0 +1,9 @@
+{
+	"name": "lowlevel-safe",
+	"description": "SmtpClient low-level API example with replies processing.",
+	"copyright": "Copyright © 2014, Rostyslav Dzinko",
+	"authors": ["Rostyslav Dzinko"],
+	"dependencies": {
+		"smtp": { "version": "~master", "path": "../../" }
+	}
+}

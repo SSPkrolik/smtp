@@ -59,7 +59,11 @@ enum SmtpReplyCode : uint {
 struct SmtpReply {
 	bool success;
 	uint code;
-	string reply;
+	string message;
+
+	string toString() {
+		return to!string(code) ~ " " ~ message;
+	}
 };
 
 /++
@@ -109,7 +113,7 @@ private:
 		auto reply = SmtpReply(
 			true,
 			to!uint(rawReply[0 .. 3]),
-			strip(rawReply[4 .. $]).idup
+			(rawReply[4 .. $]).idup
 		);
 		// Syntax and implementation errors check
 		if (reply.code >= 400) {
@@ -144,7 +148,7 @@ public:
 	/++
 	 Return SMTP server address
 	 +/
-	@property Address serverAddress() {
+	@property Address address() {
 		return this.server;
 	}
 
@@ -194,32 +198,32 @@ public:
 	 Low-level method to initiate process of sending mail.
 	 This can be called either after connect or after helo/ehlo methods call.
 	 +/
-	string mail(string sender) {
-		return getResponse("MAIL FROM:" ~ sender);
+	SmtpReply mail(string sender) {
+		return parseReply(getResponse("MAIL FROM:" ~ sender));
 	}
 
 	/++
 	 Low-level method to specify recipients of the mail. Must be called
 	 after 
 	 +/
-	string rcpt(string to) {
-		return getResponse("RCPT TO:" ~ to);
+	SmtpReply rcpt(string to) {
+		return parseReply(getResponse("RCPT TO:" ~ to));
 	}
 
 	/++
 	 Low-level method to initiate sending of the message body.
 	 Must be called after rcpt method call.
 	 +/
-	string data() {
-		return getResponse("DATA");
+	SmtpReply data() {
+		return parseReply(getResponse("DATA"));
 	}
 
 	/++
 	 Sends the body of message to server. Must be called after `data` method.
 	 Also dataBody sends needed suffix to signal about the end of the message body.
 	 +/
-	string dataBody(string message) {
-		return getResponse(message, "\r\n.\r\n");
+	SmtpReply dataBody(string message) {
+		return parseReply(getResponse(message, "\r\n.\r\n"));
 	}
 
 	/++
@@ -236,12 +240,10 @@ public:
 	 +/
 	bool send(in SmtpMessage mail) {
 		auto rawBody = "From: \"\" <" ~ mail.sender ~ ">\r\n";
-
-		auto answer = this.mail(mail.sender);
-		if (icmp(answer[0 .. 3], "250") != 0) return false;
-
+		if (!this.mail(mail.sender).success) return false;
+		
 		foreach (i, recipient; mail.recipients) {
-			answer = getResponse("RCPT TO:"~recipient);
+			auto answer = getResponse("RCPT TO:"~recipient);
 			if (icmp(answer[0 .. 3], "250") != 0) return false;
 
 			if (i == 0) {
@@ -250,13 +252,11 @@ public:
 				rawBody ~= "Cc: \"\" <" ~ mail.recipients[i] ~ ">\r\n";
 			}
 		}
-		answer = data();
-		if (icmp(answer[0 .. 3], "354") != 0) return false;
-
+		
+		if (!this.data().success) return false;
 		rawBody ~= "Subject: " ~ mail.subject ~ "\r\n\r\n" ~ mail.message;
-		answer = dataBody(rawBody);
-		if (icmp(answer[0 .. 3], "250") != 0) return false;
-
+		if (!this.dataBody(rawBody).success) return false;
+		
 		return true;
 	}
 
@@ -265,8 +265,8 @@ public:
 	 and it is recommended to do so. quit forces server to close connection with
 	 client.
 	 +/
-	string quit() {
-		return getResponse("QUIT");
+	SmtpReply quit() {
+		return parseReply(getResponse("QUIT"));
 	}
 
 	/++

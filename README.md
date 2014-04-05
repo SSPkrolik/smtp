@@ -10,18 +10,24 @@ Tested with:
 
 ## Features
 
- 1. `SmtpClient` class that implements SMTP client.
- 2. `SmtpMessage` class that implements SMTP message fields storage.
- 3. `SSL/TLS` encryption support (via `OpenSSL`). Next encryption methods implemented:
+ 1. `SmtpClient` class that implements SMTP client (mostly low-level functions).
+ 2. `MailSender` class that implements simplified API.
+ 3. `GMailSender` is a `MailSender` predefined to use GMail's smtp gateway.
+ 3. `SmtpMessage` class that implements SMTP message fields storage.
+ 4. `SSL/TLS` encryption support (via `OpenSSL`). Next encryption methods implemented:
    
-   1. `SSLv2`.
-   2. `SSLv23`.
-   3. `SSLv3`.
+   * `SSLv2`.
+   * `SSLv23`.
+   * `SSLv3`.
+
+ 5. Authentication support which includes the next methods:
+
+   * PLAIN
 
 ## TODO
 
- 1. Authentication support.
- 2. Dedicated clients for popular mail providers.
+ 1. More authentication methods.
+ 2. More Dedicated clients for popular mail providers, additional API simplification.
  3. Unit-tests suite.
  
 ## Installation

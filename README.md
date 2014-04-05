@@ -1,6 +1,7 @@
 ## SMTP library for D
 
-Current version: 0.0.3
+Current version: 0.0.9
+Get at: [Dub registry](http://code.dlang.org/packages/smtp)
 
 Native SMTP client implementation in D language.
 

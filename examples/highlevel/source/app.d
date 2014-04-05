@@ -10,21 +10,28 @@ import smtp.ssl;
 
 void main() {
 	auto message = new SmtpMessage(
-		"from@example.com",	 					// Sender (put some existing address here)
+		"from@example.com",                     // Sender (put some existing address here)
 		["to1@example.com", "to2@example.com"], // Recipients (put some existing addresses here)
-		"Test message subject",  				// Subject (topic)
-		"This is a test message body",  		// Body of the message
-		""										// Reply-to still does not work
+		"Test message subject",                 // Subject (topic)
+		"This is a test message body",          // Body of the message
+		""                                      // Reply-to still does not work
 	);
 
 	auto client = new SmtpClient(
-		"localhost", 	// SMTP server host
-		25			 	// SMTP server port
+		"localhost", // SMTP server host
+		25           // SMTP server port
 	); 
-	client.connect(); 	// Perform connection
+	client.connect();  // Perform connection
 	
 	// Uncomment next line to start TLS-encrypted communication with server
-	// client.startTls(EncryptType.SSLv3);
+	// `startTls` method will work if and only if your SMTP server
+	// support SSL/TLS encryption.
+	// 
+	// Good news is that `SmtpClient`
+	// analyzes replies for you and in case your server does not support
+	// encryption, the next code up to the end of the application
+	// will continue working through unencryted channel.
+	client.startTls(EncryptType.SSLv3);
 
 	if (client.send(message)) {  // Check if message was sent successfully
 		writefln("Message: `%s` from <%s> to <%s> sent successfully!",
@@ -32,6 +39,6 @@ void main() {
 	} else {
 		writefln("Message was not sent for some reason");
 	}
-	client.quit();		 // Tell SMTP server we're done with sending messages
+	client.quit();       // Tell SMTP server we're done with sending messages
 	client.disconnect(); // Making clean disconnect from server
 }

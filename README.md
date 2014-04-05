@@ -56,12 +56,17 @@ For this, follow the next steps:
 You can find low-level API usage example projects in `examples` folder:
 
  1. `lowlevel`
+    
     Shows the simplest chain of routines to send e-mail message via
     unencrypted channel.
+ 
  2. `lowlevel-logged`
+    
     Similar to `lowlevel` but also demonstrates possibities of `SmtpReply`
     structure to get and log messages from SMTP server.
+ 
  3. `lowlevel-safe`
+    
     Similar to `lowlevel-logged` but also shows how to check if errors
     happened during mail sending session.
 

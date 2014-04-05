@@ -1,6 +1,6 @@
 {
 	"name": "smtp",
-	"description": "SMTP library for D language",
+	"description": "Synchronous SMTP library for D language",
 	"homepage": "http://github.com/SSPkrolik/smtp",
 	"copyright": "Copyright © 2014, Rostyslav Dzinko",
 	"targetType": "library",

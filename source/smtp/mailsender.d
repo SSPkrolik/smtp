@@ -62,4 +62,11 @@ public:
 	 	}
 	 }
 
+	/++
+	 Thread-safe method for message sending
+	 +/
+	override bool send(in SmtpMessage mail) {
+		return true;
+	}
+
 }

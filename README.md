@@ -29,7 +29,8 @@ Tested with:
 
  1. More authentication methods.
  2. More Dedicated clients for popular mail providers, additional API simplification.
- 3. Unit-tests suite.
+ 3. Add thread-safety for high-level clients.
+ 4. Unit-tests suite.
  
 ## Installation
 

@@ -75,12 +75,16 @@ protected:
 	bool _authenticated;
 	InternetAddress server;
 	Socket transport;
+
+	version (ssl) {
 	SocketSSL secureTransport;
+	}
 
 	/++
 	 High-level method to send whole buffer of data into socket.
 	 +/
 	bool sendData(in char[] data) {
+		version(ssl) { // SSL Enabled
 		if (!this.secure) {
 			ptrdiff_t sent = 0;
 			while (sent < data.length) {
@@ -90,6 +94,13 @@ protected:
 		} else {
 			return secureTransport.write(data) ? true : false;
 		}
+		} else {       // SSL Disabled
+		ptrdiff_t sent = 0;
+		while (sent < data.length) {
+			sent += this.transport.send(data);
+		}
+		return true;
+		}
 	}
 
 	/++
@@ -97,11 +108,16 @@ protected:
 	 +/
 	string receiveData() {
 		char[1024] buf;
+		version(ssl) {  // SSL Enabled
 		if (!this.secure) {
 			ptrdiff_t bytesReceived = this.transport.receive(buf);
 			return to!string(buf[0 .. bytesReceived]);
 		} else {
 			return secureTransport.read();
+		}
+		} else {        // SSL Disabled
+		ptrdiff_t bytesReceived = this.transport.receive(buf);
+		return to!string(buf[0 .. bytesReceived]);
 		}
 	}
 
@@ -172,12 +188,16 @@ public:
 	 Send command indicating that TLS encrypting of socket data stream has started.
 	 +/
 	SmtpReply startTls(EncryptType enctype = EncryptType.SSLv3, bool verifyCertificate = false) {
+		version(ssl) {
 		auto response = parseReply(getResponse("STARTTLS"));
 		if (response.success) {
 			secureTransport = new SocketSSL(transport, enctype);
 			secure = verifyCertificate ? secureTransport.ready && secureTransport.certificateIsVerified : secureTransport.ready;
 		}
 		return response;
+		} else {
+		return SmtpReply(false, 0, "");
+		}
 	}
 
 	/++

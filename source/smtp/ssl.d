@@ -1,5 +1,7 @@
 module smtp.ssl;
 
+version(ssl) {
+
 import std.algorithm;
 import std.stdio;
 import std.conv;
@@ -9,6 +11,8 @@ import deimos.openssl.ssl;
 import deimos.openssl.conf;
 import deimos.openssl.err;
 import deimos.openssl.ssl;
+
+}
 
 /++
  Encryption methods for use with SSL
@@ -24,6 +28,7 @@ enum EncryptType : uint {
 	TLSv1_1 = 5, // TLS version 1.1 encryption
 }
 
+version(ssl) {
 /++
  Initializes OpenSSL library
  +/
@@ -58,8 +63,10 @@ public:
 	 	// Creating SSL context
 	 	switch (enctype) {
 	 	case EncryptType.SSLv2:
-	 		encmethod = cast(SSL_METHOD*)SSLv2_client_method();
-	 		break;
+ 			version(ssl_no_ssl2) { return; } else {
+ 			encmethod = cast(SSL_METHOD*)SSLv2_client_method();
+ 			break;
+ 			}
 	 	case EncryptType.SSLv23:
 	 		encmethod = cast(SSL_METHOD*)SSLv23_client_method();
 	 		break;
@@ -141,3 +148,4 @@ public:
 		if (ctx != null) SSL_CTX_free(ctx);
 	}
 };
+}

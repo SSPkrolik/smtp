@@ -63,10 +63,24 @@ public:
 	 }
 
 	/++
-	 Thread-safe method for message sending
+	 High-level method for sending messages.
+
+	 Accepts SmtpMessage instance and returns true
+	 if message was sent successfully or false otherwise.
+
+	 This method is recommended in order to simplify the whole workflow
+	 with the `smtp` library.
+
+	 send method basically implements [mail -> rcpt ... rcpt -> data -> dataBody]
+	 method calls chain.
 	 +/
-	override bool send(in SmtpMessage mail) {
+	bool send(in SmtpMessage mail) {
+		if (!this.mail(mail.sender.address).success) return false;
+		foreach (i, recipient; mail.recipients) {
+			if (!this.rcpt(recipient.address).success) return false;
+		}
+		if (!this.data().success) return false;
+		if (!this.dataBody(mail.toString()).success) return false;
 		return true;
 	}
-
 }

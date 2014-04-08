@@ -33,7 +33,7 @@ public:
 	bool initialize() {
 		if (connect().success) {
 			if (ehlo().success) {
-				return startTls(_encType).success;
+				return startTLS(_encType).success;
 			} else {
 				return false;
 			}

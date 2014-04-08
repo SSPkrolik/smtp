@@ -6,8 +6,11 @@
 	"targetType": "library",
 	"authors": ["Rostyslav Dzinko"],
 	"license": "MIT",
-	
+
 	"configurations": [
+		{
+			"name": "no-ssl",
+		},
 		{
 			"name": "ssl",
 			"systemDependencies": "OpenSSL 0.9.x or 1.0.x",

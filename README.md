@@ -19,7 +19,7 @@ Tested with:
   - `SSLv3`
   - `TLSv1`
  6. Authentication support which includes the next methods:
-  - PLAIN
+  - `PLAIN`
 
 ## TODO
 
@@ -72,9 +72,8 @@ For this, follow the next steps:
 You can find low-level API usage example projects in `examples` folder:
 
  1. `lowlevel`
-    
-    Shows the simplest chain of routines to send e-mail message via
-    unencrypted channel.
+  Shows the simplest chain of routines to send e-mail message via
+  unencrypted channel.
 
 You can enter folder `examples/<example-project-name>` and perform `$ dub` in order
 to run and test example.
@@ -100,7 +99,7 @@ either using open or encrypted channel.
 import std.stdio;
 
 import smtp.client;
-import smtp.message;
+
 
 void main()
 {

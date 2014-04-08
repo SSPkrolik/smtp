@@ -11,7 +11,7 @@
 import std.stdio;
 
 import smtp.client;
-import smtp.message;
+
 
 void main()
 {

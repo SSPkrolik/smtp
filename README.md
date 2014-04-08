@@ -1,11 +1,11 @@
-## SMTP library for D, 0.0.9
+## SMTP library for D - v0.0.9
 
 Native SMTP client implementation in D language.
 Get at: [Dub registry](http://code.dlang.org/packages/smtp)
 
 Tested with:
- * `gdc-4.8` `dmd-2.065.0` on Ubuntu 13.10
- * `dmd-2.065.0` on OS X 10.9.2
+ - `gdc-4.8` `dmd-2.065.0` on Ubuntu 13.10
+ - `dmd-2.065.0` on OS X 10.9.2
 
 ## Features
 
@@ -14,14 +14,12 @@ Tested with:
  3. `GMailSender` is a `MailSender` predefined to use GMail's smtp gateway
  4. `SmtpMessage` class that implements SMTP message fields storage
  5. `SSL/TLS` encryption support (via `OpenSSL`). Next encryption methods implemented:
-   
-   - `SSLv2`
-   - `SSLv23`
-   - `SSLv3`
-   - `TLSv1`
+  - `SSLv2`
+  - `SSLv23`
+  - `SSLv3`
+  - `TLSv1`
  6. Authentication support which includes the next methods:
-
-   * PLAIN
+  - PLAIN
 
 ## TODO
 

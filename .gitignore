@@ -7,3 +7,4 @@ examples/lowlevel-logged/lowlevel-logged
 examples/highlevel/highlevel
 
 *.rdb
+__*

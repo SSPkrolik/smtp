@@ -10,12 +10,26 @@ import smtp.auth;
 import smtp.reply;
 import smtp.ssl;
 
-
 /++
- SMTP Client implementation.
+ Low-level synchronous API for implementing SMTP clients.
+
+ SmtpClient handles:
+  + TCP data transmission and buffers management
+  + TLS/SSL channel encryption
+  + SMTP protocol request/reply handling
+  + transport layer exceptions
+
+ SmtpClient does NOT handle:
+  * semantic class usage mistakes like bad commands sequences
+
+ Supported SMTP commands:
+  HELO, EHLO, MAIL, RCPT, DATA (data, dataBody), AUTH (auth, authPlain),
+  STARTTLS, QUIT
+
+ Supported authentication methods:
+  PLAIN
  +/
 class SmtpClient {
-
 protected:
 	char[1024] _recvbuf;
 

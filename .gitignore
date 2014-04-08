@@ -5,3 +5,5 @@ examples/lowlevel/lowlevel
 examples/lowlevel-safe/lowlevel-safe
 examples/lowlevel-logged/lowlevel-logged
 examples/highlevel/highlevel
+
+*.rdb

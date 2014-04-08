@@ -47,16 +47,26 @@ For this, follow the next steps:
        }
      }
      ```
- 4. Use dub to build project:
+ 4. Use dub to build smtp library:
 
+     without SSL/TLS support
      ```bash
      $ dub
      ```
-     to build with dependencies or 
+     or with SSL/TLS support:
      ```bash
-     $ dub --force
+     $ dub -c ssl
      ```
-     after code update for rebuilding.
+     To chose right smtp building configuration for your project use `subConfigurations` setting in
+     your project's `dub.json`:
+     ```json
+     {
+       "subConfigurations": { "smtp": "no-ssl" }
+     }
+     ```
+     Available configurations are:
+       * `no-ssl` by default
+       * `ssl` to build with `OpenSSL` support
 
 ## Usage
 

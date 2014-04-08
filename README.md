@@ -1,25 +1,24 @@
-## SMTP library for D
-
-Current version: 0.0.9
-Get at: [Dub registry](http://code.dlang.org/packages/smtp)
+## SMTP library for D, 0.0.9
 
 Native SMTP client implementation in D language.
+Get at: [Dub registry](http://code.dlang.org/packages/smtp)
 
 Tested with:
- * `gdc-4.8` on Ubuntu 13.10
+ * `gdc-4.8` `dmd-2.065.0` on Ubuntu 13.10
  * `dmd-2.065.0` on OS X 10.9.2
 
 ## Features
 
- 1. `SmtpClient` class that implements SMTP client (mostly low-level functions).
- 2. `MailSender` class that implements simplified API.
- 3. `GMailSender` is a `MailSender` predefined to use GMail's smtp gateway.
- 4. `SmtpMessage` class that implements SMTP message fields storage.
+ 1. `SmtpClient` class that implements SMTP client (mostly low-level functions)
+ 2. `MailSender` class that implements simplified API
+ 3. `GMailSender` is a `MailSender` predefined to use GMail's smtp gateway
+ 4. `SmtpMessage` class that implements SMTP message fields storage
  5. `SSL/TLS` encryption support (via `OpenSSL`). Next encryption methods implemented:
    
-   * `SSLv2`.
-   * `SSLv23`.
-   * `SSLv3`.
+   - `SSLv2`
+   - `SSLv23`
+   - `SSLv3`
+   - `TLSv1`
  6. Authentication support which includes the next methods:
 
    * PLAIN
@@ -28,8 +27,10 @@ Tested with:
 
  1. More authentication methods.
  2. More Dedicated clients for popular mail providers, additional API simplification.
- 3. Add thread-safety for high-level clients.
- 4. Unit-tests suite.
+ 3. Thread-safety.
+ 4. High-level client.
+ 5. Unit-tests suite.
+ 6. Asynchronous version (based on fibers?)
  
 ## Installation
 
@@ -76,21 +77,6 @@ You can find low-level API usage example projects in `examples` folder:
     
     Shows the simplest chain of routines to send e-mail message via
     unencrypted channel.
- 
- 2. `lowlevel-logged`
-    
-    Similar to `lowlevel` but also demonstrates possibities of `SmtpReply`
-    structure to get and log messages from SMTP server.
- 
- 3. `lowlevel-safe`
-    
-    Similar to `lowlevel-logged` but also shows how to check if errors
-    happened during mail sending session.
- 
- 4. `highlevel`
-
-    Shows the simples chain of routines to send e-mail via unencrypted channel.
-    Also you can find this example in this wiki page below.
 
 You can enter folder `examples/<example-project-name>` and perform `$ dub` in order
 to run and test example.
@@ -103,48 +89,61 @@ Here's an example of high-level `SmtpClient` API usage for sending sample email
 either using open or encrypted channel.
 
 ```D
-#!/usr/bin/rdmd
+/++
+ Example: smtp library `SmtpClient` low-level API usage.
 
+ Working with SMTP server via SmtpClient over non-encrypted communication channel.
+ Here we send sample letter using SMTP protocol commands directly in
+ an order specified by RFC 2821 (April 2001).
+
+ ! WARNING ! You can mention strange code here, which is though made in such a special
+ manner to demonstrate as much features of the library as possible.
+ +/
 import std.stdio;
-import std.string;
 
 import smtp.client;
 import smtp.message;
-import smtp.ssl;
 
-
-void main() {
-  auto message = new SmtpMessage(
-    "from@example.com",                     // Sender (put some existing address here)
-    ["to1@example.com", "to2@example.com"], // Recipients (put some existing addresses here)
-    "Test message subject",                 // Subject (topic)
-    "This is a test message body",          // Body of the message
-    ""                                      // Reply-to still does not work
-  );
-
-  auto client = new SmtpClient(
-    "localhost", // SMTP server host
-    25           // SMTP server port
-  ); 
-  client.connect();  // Perform connection
+void main()
+{
+  // SmtpClient instantiation (Second parameter is a port, '25' by default
+  // for non-SSL connections). Low-level client API.
+  auto client = new SmtpClient("localhost");
   
-  // Uncomment next line to start TLS-encrypted communication with server
-  // `startTls` method will work if and only if your SMTP server
-  // support SSL/TLS encryption.
-  // 
-  // Good news is that `SmtpClient`
-  // analyzes replies for you and in case your server does not support
-  // encryption, the next code up to the end of the application
-  // will continue working through unencryted channel.
-  client.startTls(EncryptType.SSLv3);
-
-  if (client.send(message)) {  // Check if message was sent successfully
-    writefln("Message: `%s` from <%s> to <%s> sent successfully!",
-      message.subject, message.sender, message.recipients);
-  } else {
-    writefln("Message was not sent for some reason");
+  // All public methods except `disconnect` return SmtpReply struct instance
+  // that has bool `success` field indicating request/operation result.
+  if(!client.connect().success) { // Connecting to server
+    writeln("Cannot connect to specified server at address: ", client.address);
+    return;
   }
-  client.quit();       // Tell SMTP server we're done with sending messages
-  client.disconnect(); // Making clean disconnect from server
+
+  // You can use write to log `SmtpReply` instances. This function
+  // implicitly uses `toString()` method to convert struct to string.
+  // Resulting string is equal to the raw reply text came from SMTP server.
+  write("Initiating: ", client.mail("from@localhost")); // Initiating mail sending
+
+  // SmtpReply structs also have `message` field that holds textual
+  // part of SMTP server reply. Also if you want to send your letter
+  // to several people, you have to call `rcpt()` method for each
+  // letter recipient.
+  write("RCPT message: ", client.rcpt("to@example.com").message); // Telling server who must receive our e-mail
+  
+  // `data()` method initiates transmission of your letter's body. Also check
+  // `SmtpReply` last field `code` which returns request/operation result
+  // code according to standard.
+  auto reply = client.data(); // Telling that we're going to send message body
+  if (reply.code < 400) { // Actually this is done for you (check `success` field)
+    writeln("Data transfer initiated");
+    return;
+  }
+  
+  // Transmitting data body to server
+  client.dataBody("Subject: Test subject\r\n\r\nTest message");  // Sending message body
+  
+  // Telling SMTP server we're finishing communication
+  client.quit();
+
+  // Making clean disconnect
+  client.disconnect(); // Making clean sockets shutdown
 }
 ```

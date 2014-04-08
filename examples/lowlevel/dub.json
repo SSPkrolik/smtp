@@ -5,5 +5,8 @@
 	"authors": ["Rostyslav Dzinko"],
 	"dependencies": {
 		"smtp": { "version": "~master", "path": "../../" }
+	},
+	"subConfigurations": {
+		"smtp": "no-ssl",
 	}
 }

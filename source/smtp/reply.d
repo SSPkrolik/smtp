@@ -56,3 +56,9 @@ struct SmtpReply {
 		return to!string(code) ~ message;
 	}
 };
+
+unittest {
+	// Testing SmtpReply toString converesion
+	auto reply = SmtpReply(true, 220, " Hello, ready to work\r\n");
+	assert(reply.toString == "220 Hello, ready to work\r\n");
+}

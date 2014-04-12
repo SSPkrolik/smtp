@@ -23,8 +23,8 @@ import smtp.ssl;
   * semantic class usage mistakes like bad commands sequences
 
  Supported SMTP commands:
-  HELO, EHLO, MAIL, RCPT, DATA (data, dataBody), AUTH (auth, authPlain),
-  STARTTLS, QUIT
+  NOOP, HELO, EHLO, MAIL, RSET, RCPT, DATA (data, dataBody), AUTH (auth, authPlain),
+  STARTTLS, VRFY, EXPN QUIT
 
  Supported authentication methods:
   PLAIN

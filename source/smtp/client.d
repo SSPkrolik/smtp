@@ -155,6 +155,14 @@ public:
 	}
 
 	/++
+	 A `no operation` message. essage that does not invoke any specific routine
+	 on server, but still the reply is received.
+	 +/
+	SmtpReply noop() {
+		return parseReply(getResponse("NOOP"));
+	}
+
+	/++
 	 Initial message to send after connection.
 	 Nevertheless it is recommended to use `ehlo()` instead of this method
 	 in order to get more information about SMTP server configuration.

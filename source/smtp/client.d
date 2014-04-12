@@ -229,6 +229,35 @@ public:
 	}
 
 	/++
+	 This method cancels mail transmission if mail session is in progress
+	 (after `mail` method was called).
+	 +/
+	SmtpReply rset() {
+		return parseReply(getResponse("RSET"));
+	}
+
+	/++
+	 This method asks server to verify if the user's mailbox exists on server.
+	 You can pass [username] or <[e-mail]> as an argument. The result is a reply
+	 that contains e-mail of the user, or an error code.
+	 
+	 IMPORTANT NOTE: most of servers forbid using of VRFY considering it to
+	 be a security hole.
+	 +/
+	SmtpReply vrfy(string username) {
+		return parseReply(getResponse("VRFY " ~ username));
+	}
+
+	/++
+	 EXPN expands mailing list on the server. If mailing list is not available
+	 for you, you receive appropriate error reply, else you receive a list of
+	 mailiing list subscribers.
+	 +/
+	SmtpReply expn(string mailinglist) {
+		return parseReply(getResponse("EXPN " ~ mailinglist));
+	}
+
+	/++
 	 Performs disconnection from server. In one session several mails can be sent,
 	 and it is recommended to do so. quit forces server to close connection with
 	 client.

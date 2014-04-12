@@ -113,9 +113,6 @@ protected:
 	}
 
 public:
-	@property bool secure() const { return _secure; }
-	@property Address address() { return this.server; }
-
 	this(string host, ushort port = 25) {
 		auto addr = new InternetHost;
 		if (addr.getHostByName(host)) {
@@ -124,6 +121,10 @@ public:
 		}
 		transport = new TcpSocket(AddressFamily.INET);
 	}
+
+	@property bool secure() const { return _secure; }
+	@property Address address() { return this.server; }
+	@property authenticated() const { return _authenticated; }
 
 	/++
 	 Performs socket connection establishment.

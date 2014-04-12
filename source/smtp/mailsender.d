@@ -15,8 +15,6 @@ import smtp.ssl;
 class MailSender : SmtpClient {
 
 private:
-	bool _authenticated;
-
 	version(ssl) {
 	EncryptionMethod _encType;
 	}
@@ -32,25 +30,6 @@ version(ssl) {
 		super(host, port);
 	}
 }
-
-	const @property authenticated() {
-		return _authenticated;
-	}
-
-	/++
-	 Perform most-used initialization for SMTP clients:
-	  - Connect to server
-	  - Send initial EHLO
-	  - Start TLS on channel if needed
-	 +/
-	override SmtpReply connect() {
-		SmtpReply reply = super.connect();
-		if (reply.success) {
-			return reply;
-		} else {
-			return reply;
-		} 
-	}
 
 	/++
 	 Perfrom authentication process in one method (high-level) instead

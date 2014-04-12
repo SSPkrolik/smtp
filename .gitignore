@@ -4,7 +4,7 @@
 examples/lowlevel/lowlevel
 examples/lowlevel-safe/lowlevel-safe
 examples/lowlevel-logged/lowlevel-logged
-examples/highlevel/highlevel
+examples/sender/sender
 
 *.rdb
 __*

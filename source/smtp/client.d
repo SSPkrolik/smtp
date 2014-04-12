@@ -141,7 +141,7 @@ public:
 	/++
 	 Send command indicating that TLS encrypting of socket data stream has started.
 	 +/
-	SmtpReply starttls(EncryptionMethod enctype = EncryptionMethod.SSLv3, bool verifyCertificate = false) {
+	final SmtpReply starttls(EncryptionMethod enctype = EncryptionMethod.SSLv3, bool verifyCertificate = false) {
 		version(ssl) {
 		auto response = parseReply(getResponse("STARTTLS"));
 		if (response.success) {
@@ -158,7 +158,7 @@ public:
 	 A `no operation` message. essage that does not invoke any specific routine
 	 on server, but still the reply is received.
 	 +/
-	SmtpReply noop() {
+	final SmtpReply noop() {
 		return parseReply(getResponse("NOOP"));
 	}
 
@@ -167,7 +167,7 @@ public:
 	 Nevertheless it is recommended to use `ehlo()` instead of this method
 	 in order to get more information about SMTP server configuration.
 	 +/
-	SmtpReply helo() {
+	final SmtpReply helo() {
 		return parseReply(getResponse("HELO " ~ transport.hostName));
 	}
 
@@ -175,14 +175,14 @@ public:
 	 Initial message to send after connection.
 	 Retrieves information about SMTP server configuration
 	 +/
-	SmtpReply ehlo() {
+	final SmtpReply ehlo() {
 		return parseReply(getResponse("EHLO " ~ transport.hostName));
 	}
 
 	/++
 	 Perform authentication (according to RFC 4954)
 	 +/
-	SmtpReply auth(in SmtpAuthType authType) {
+	final SmtpReply auth(in SmtpAuthType authType) {
 		return parseReply(getResponse("AUTH " ~ authType));
 	}
 
@@ -190,7 +190,7 @@ public:
 	 Send base64-encoded authentication data according to RFC 2245.
 	 Need to be performed after `data` method call;
 	 +/
-	SmtpReply authPlain(string login, string password) {
+	final SmtpReply authPlain(string login, string password) {
 		string data = login ~ "\0" ~ login ~ "\0" ~ password;
 		const(char)[] encoded = Base64.encode(cast(ubyte[])data);
 		return parseReply(getResponse(to!string(encoded)));
@@ -200,7 +200,7 @@ public:
 	 Low-level method to initiate process of sending mail.
 	 This can be called either after connect or after helo/ehlo methods call.
 	 +/
-	SmtpReply mail(string address) {
+	final SmtpReply mail(string address) {
 		return parseReply(getResponse("MAIL FROM:<" ~ address ~ ">"));
 	}
 
@@ -208,7 +208,7 @@ public:
 	 Low-level method to specify recipients of the mail. Must be called
 	 after 
 	 +/
-	SmtpReply rcpt(string to) {
+	final SmtpReply rcpt(string to) {
 		return parseReply(getResponse("RCPT TO:<" ~ to ~ ">"));
 	}
 
@@ -216,7 +216,7 @@ public:
 	 Low-level method to initiate sending of the message body.
 	 Must be called after rcpt method call.
 	 +/
-	SmtpReply data() {
+	final SmtpReply data() {
 		return parseReply(getResponse("DATA"));
 	}
 
@@ -224,7 +224,7 @@ public:
 	 Sends the body of message to server. Must be called after `data` method.
 	 Also dataBody sends needed suffix to signal about the end of the message body.
 	 +/
-	SmtpReply dataBody(string message) {
+	final SmtpReply dataBody(string message) {
 		return parseReply(getResponse(message, "\r\n.\r\n"));
 	}
 
@@ -232,7 +232,7 @@ public:
 	 This method cancels mail transmission if mail session is in progress
 	 (after `mail` method was called).
 	 +/
-	SmtpReply rset() {
+	final SmtpReply rset() {
 		return parseReply(getResponse("RSET"));
 	}
 
@@ -244,7 +244,7 @@ public:
 	 IMPORTANT NOTE: most of servers forbid using of VRFY considering it to
 	 be a security hole.
 	 +/
-	SmtpReply vrfy(string username) {
+	final SmtpReply vrfy(string username) {
 		return parseReply(getResponse("VRFY " ~ username));
 	}
 
@@ -253,7 +253,7 @@ public:
 	 for you, you receive appropriate error reply, else you receive a list of
 	 mailiing list subscribers.
 	 +/
-	SmtpReply expn(string mailinglist) {
+	final SmtpReply expn(string mailinglist) {
 		return parseReply(getResponse("EXPN " ~ mailinglist));
 	}
 
@@ -262,7 +262,7 @@ public:
 	 and it is recommended to do so. quit forces server to close connection with
 	 client.
 	 +/
-	SmtpReply quit() {
+	final SmtpReply quit() {
 		return parseReply(getResponse("QUIT"));
 	}
 

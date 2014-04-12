@@ -1,5 +1,7 @@
 module smtp.gmailsender;
 
+version(ssl) {
+
 import smtp.mailsender;
 import smtp.ssl;
 
@@ -13,4 +15,6 @@ public:
 	this() {
 		super("smtp.gmail.com", 587, EncryptionMethod.TLSv1);
 	}
+}
+
 }

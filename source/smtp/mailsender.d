@@ -3,7 +3,11 @@ module smtp.mailsender;
 import smtp.auth;
 import smtp.client;
 import smtp.message;
+import smtp.reply;
+
+version(ssl) {
 import smtp.ssl;
+}
 
 /++
  High-level implementation of SMTP client.
@@ -12,13 +16,22 @@ class MailSender : SmtpClient {
 
 private:
 	bool _authenticated;
+
+	version(ssl) {
 	EncryptionMethod _encType;
+	}
 
 public:
+version(ssl) {
 	this(string host, ushort port, EncryptionMethod encType = EncryptionMethod.None) {
 		super(host, port);
 		_encType = encType;
 	}
+} else {
+	this(string host, ushort port) {
+		super(host, port);
+	}
+}
 
 	const @property authenticated() {
 		return _authenticated;
@@ -30,16 +43,13 @@ public:
 	  - Send initial EHLO
 	  - Start TLS on channel if needed
 	 +/
-	bool initialize() {
-		if (connect().success) {
-			if (ehlo().success) {
-				return starttls(_encType).success;
-			} else {
-				return false;
-			}
+	override SmtpReply connect() {
+		SmtpReply reply = super.connect();
+		if (reply.success) {
+			return reply;
 		} else {
-			return false;
-		}
+			return reply;
+		} 
 	}
 
 	/++

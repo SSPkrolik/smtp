@@ -1,4 +1,4 @@
-## SMTP library for D - v0.0.9
+## SMTP library for D - version 0.1.1
 
 Native synchronous SMTP client implementation in D language. Get at official Dub repository: [code.dlang.org](http://code.dlang.org/packages/smtp)
 

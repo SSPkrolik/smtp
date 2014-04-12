@@ -50,7 +50,7 @@ protected:
 	bool sendData(in char[] data) {
 		// SSL Enabled
 		version(ssl) {
-			if (!this.secure) {
+			if (!this._secure) {
 				ptrdiff_t sent = 0;
 				while (sent < data.length) {
 					sent += this.transport.send(data);
@@ -75,7 +75,7 @@ protected:
 	string receiveData() {
 		// SSL Enabled
 		version(ssl) {  
-			if (!this.secure) {
+			if (!this._secure) {
 				ptrdiff_t bytesReceived = this.transport.receive(_recvbuf);
 				return to!string(_recvbuf[0 .. bytesReceived]);
 			} else {
@@ -113,7 +113,7 @@ protected:
 	}
 
 public:
-	@property bool secure() { return _secure; }
+	@property bool secure() const { return _secure; }
 	@property Address address() { return this.server; }
 
 	this(string host, ushort port = 25) {
@@ -141,7 +141,7 @@ public:
 	/++
 	 Send command indicating that TLS encrypting of socket data stream has started.
 	 +/
-	SmtpReply startTLS(EncryptType enctype = EncryptType.SSLv3, bool verifyCertificate = false) {
+	SmtpReply starttls(EncryptionMethod enctype = EncryptionMethod.SSLv3, bool verifyCertificate = false) {
 		version(ssl) {
 		auto response = parseReply(getResponse("STARTTLS"));
 		if (response.success) {

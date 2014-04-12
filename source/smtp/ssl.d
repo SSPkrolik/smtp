@@ -17,7 +17,7 @@ import deimos.openssl.ssl;
 /++
  Encryption methods for use with SSL
  +/
-enum EncryptType : uint {
+enum EncryptionMethod : uint {
 	None    = 0, // No encryption is used
 
 	SSLv2   = 1, // SSL version 2 encryption
@@ -56,26 +56,26 @@ public:
 	@property bool ready() { return m_ready; }
 	@property bool certificateIsVerified() { return m_verified; }
 
-	this(Socket socket, EncryptType enctype = EncryptType.SSLv3) {
+	this(Socket socket, EncryptionMethod enctype = EncryptionMethod.SSLv3) {
 	 	initializeSSL();
 
 	 	// Creating SSL context
 	 	final switch (enctype) {
-	 	case EncryptType.SSLv2:
+	 	case EncryptionMethod.SSLv2:
  			version(ssl_no_ssl2) { return; } else {
  			encmethod = cast(SSL_METHOD*)SSLv2_client_method();
  			break;
  			}
-	 	case EncryptType.SSLv23:
+	 	case EncryptionMethod.SSLv23:
 	 		encmethod = cast(SSL_METHOD*)SSLv23_client_method();
 	 		break;
-	 	case EncryptType.SSLv3:
+	 	case EncryptionMethod.SSLv3:
 	 		encmethod = cast(SSL_METHOD*)SSLv3_client_method();
 	 		break;
-	 	case EncryptType.TLSv1:
+	 	case EncryptionMethod.TLSv1:
 	 		encmethod = cast(SSL_METHOD*)TLSv1_client_method();
 	 		break;
-	 	case EncryptType.None:
+	 	case EncryptionMethod.None:
 	 		return;
 	 	}
 		ctx = SSL_CTX_new(cast(const(SSL_METHOD*))(encmethod));

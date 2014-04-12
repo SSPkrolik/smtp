@@ -12,10 +12,10 @@ class MailSender : SmtpClient {
 
 private:
 	bool _authenticated;
-	EncryptType _encType;
+	EncryptionMethod _encType;
 
 public:
-	this(string host, ushort port, EncryptType encType = EncryptType.None) {
+	this(string host, ushort port, EncryptionMethod encType = EncryptionMethod.None) {
 		super(host, port);
 		_encType = encType;
 	}
@@ -33,7 +33,7 @@ public:
 	bool initialize() {
 		if (connect().success) {
 			if (ehlo().success) {
-				return startTLS(_encType).success;
+				return starttls(_encType).success;
 			} else {
 				return false;
 			}

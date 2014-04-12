@@ -1,0 +1,12 @@
+{
+	"name": "lowlevel-tls",
+	"description": "The simplest low-level message sending example using smtp library over TLS-encrypted channel.",
+	"copyright": "Copyright © 2014, Rostyslav Dzinko",
+	"authors": ["Rostyslav Dzinko"],
+	"dependencies": {
+		"smtp": { "version": "~master", "path": "../../" }
+	},
+	"subConfigurations": {
+		"smtp": "ssl",
+	}
+}

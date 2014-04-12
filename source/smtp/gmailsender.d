@@ -11,6 +11,6 @@ class GMailSender : MailSender {
 
 public:
 	this() {
-		super("smtp.gmail.com", 587, EncryptType.TLSv1);
+		super("smtp.gmail.com", 587, EncryptionMethod.TLSv1);
 	}
 }

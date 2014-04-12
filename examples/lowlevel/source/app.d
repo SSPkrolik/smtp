@@ -35,7 +35,7 @@ void main()
 	// part of SMTP server reply. Also if you want to send your letter
 	// to several people, you have to call `rcpt()` method for each
 	// letter recipient.
-	write("RCPT message: ", client.rcpt("to@example.com").message); // Telling server who must receive our e-mail
+	write("RCPT message:", client.rcpt("to@example.com").message); // Telling server who must receive our e-mail
 	
 	// `data()` method initiates transmission of your letter's body. Also check
 	// `SmtpReply` last field `code` which returns request/operation result
@@ -43,14 +43,16 @@ void main()
 	auto reply = client.data(); // Telling that we're going to send message body
 	if (reply.code < 400) { // Actually this is done for you (check `success` field)
 		writeln("Data transfer initiated");
+	} else {
+		writeln("Data transfer problem:", reply);
 		return;
 	}
-	
+
 	// Transmitting data body to server
 	client.dataBody("Subject: Test subject\r\n\r\nTest message");  // Sending message body
 	
 	// Telling SMTP server we're finishing communication
-	client.quit();
+	write(client.quit());
 
 	// Making clean disconnect
 	client.disconnect(); // Making clean sockets shutdown

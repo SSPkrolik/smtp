@@ -25,7 +25,6 @@ enum EncryptType : uint {
 	SSLv3   = 3, // SSL version 3 encryption
 
 	TLSv1   = 4, // TLS version 1 encryption
-	TLSv1_1 = 5, // TLS version 1.1 encryption
 }
 
 version(ssl) {
@@ -61,7 +60,7 @@ public:
 	 	initializeSSL();
 
 	 	// Creating SSL context
-	 	switch (enctype) {
+	 	final switch (enctype) {
 	 	case EncryptType.SSLv2:
  			version(ssl_no_ssl2) { return; } else {
  			encmethod = cast(SSL_METHOD*)SSLv2_client_method();
@@ -76,7 +75,7 @@ public:
 	 	case EncryptType.TLSv1:
 	 		encmethod = cast(SSL_METHOD*)TLSv1_client_method();
 	 		break;
-	 	default:
+	 	case EncryptType.None:
 	 		return;
 	 	}
 		ctx = SSL_CTX_new(cast(const(SSL_METHOD*))(encmethod));

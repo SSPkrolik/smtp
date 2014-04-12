@@ -8,3 +8,4 @@ examples/highlevel/highlevel
 
 *.rdb
 __*
+.DS_Store

@@ -32,6 +32,7 @@ private:
 	bool _server_supports_8bitmime = false;
 	bool _server_supports_binarymime = false;
 	bool _server_supports_chunking = false;
+	bool _server_supports_encryption = false;
 
 	uint _max_message_size = 0;
 
@@ -69,6 +70,7 @@ version(ssl) {
 	bool extension8bitMime() const { return _server_supports_8bitmime; }
 	bool extensionBinaryMime() const { return _server_supports_binarymime; }
 	bool extensionChunking() const { return _server_supports_chunking; }
+	bool extensionTls() const { return _server_supports_encryption; }
 
 	/++
 	 Connecting to SMTP server and also trying to get server possibiities
@@ -83,6 +85,9 @@ version(ssl) {
 		foreach(line; split(strip(reply.message), "\r\n")[1 .. $ - 1]) {
 			auto extension = line[4 .. $];
 			switch(extension) {
+			case "STARTTLS":
+				_server_supports_encryption = true;
+				break;
 			case "PIPELINING":
 				_server_supports_pipelining = true;
 				break;
@@ -161,13 +166,25 @@ version(ssl) {
 	 send method basically implements [mail -> rcpt ... rcpt -> data -> dataBody]
 	 method calls chain.
 	 +/
-	bool send(in SmtpMessage mail) {
-		if (!this.mail(mail.sender.address).success) return false;
+	SmtpReply send(in SmtpMessage mail) {
+		auto reply = this.mail(mail.sender.address);
+		if (!reply.success) return reply;
 		foreach (i, recipient; mail.recipients) {
-			if (!this.rcpt(recipient.address).success) return false;
+			reply = this.rcpt(recipient.address); 
+			if (!reply.success) {
+				this.rset();
+				return reply;
+			}
 		}
-		if (!this.data().success) return false;
-		if (!this.dataBody(mail.toString()).success) return false;
-		return true;
+		reply = this.data(); 
+		if (!reply.success) {
+			this.rset();
+			return reply;
+		}
+		reply = this.dataBody(mail.toString);
+		if (!reply.success) {
+			this.rset();
+		}
+		return reply;
 	}
 }

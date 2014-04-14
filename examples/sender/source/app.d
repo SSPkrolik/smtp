@@ -35,7 +35,9 @@ void main()
 			"replyto@example.com",
 		);
 
-		// Send message
+		// Smart method to send message.
+		// Performs message transmission sequence with error checking.
+		// In case message cannot be sent, `rset` method is called implicitly.
 		write(sender.send(message));
 	} else {
 		write(result);

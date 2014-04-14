@@ -33,22 +33,31 @@ version(ssl) {
 
 	/++
 	 Perfrom authentication process in one method (high-level) instead
-	 of sending AUTH and auth data in several messages
+	 of sending AUTH and auth data in several messages.
+
+	 Auth schemes accoring to type:
+	  * PLAIN:
+	    | AUTH->, <-STATUS, [encoded login/password]->, <-STATUS
+	  * LOGIN:
+	    | AUTH->, <-STATUS, [encoded login]->, <-STATUS, [encoded password]->, <-STATUS
 	 +/
-	 bool authenticate(A...)(in SmtpAuthType authType, A params) {
-	 	switch (authType) {
+	 SmtpReply authenticate(A...)(in SmtpAuthType authType, A params) {
+	 	final switch (authType) {
 	 	case SmtpAuthType.PLAIN:
-	 		static if (params.length) {
-	 			static if (params.length == 2) {
-	 				auth(authType);
-	 				if (authPlain(params[0], params[1]).success) {
-	 					_authenticated = true;
-	 				}
-	 			}
-	 		}
-	 	default:
-	 		return SmtpReply(false, 0, "");
+	 		static assert(params.length == 2 && isSomeString(params[0]) && isSomeString(params[1]));
+			auto reply = auth(authType);
+			return reply.success ? authPlain(params[0], params[1]) : reply;
+	 	case SmtpAuthType.LOGIN:
+	 		static assert(params.length == 2 && isSomeString(A[0]) && isSomeString(A[1]));
+			auto reply = auth(authType);
+			if (reply.success) {
+				reply = authLoginUsername(params[0]);
+				return reply.success ? authLoginPassword(params[1]) : reply;
+			} else {
+				return reply;
+			}
 	 	}
+ 		return SmtpReply(false, 0, "");
 	 }
 
 	/++

@@ -198,6 +198,22 @@ public:
 	}
 
 	/++
+	 Sends base64-encoded login
+	 +/
+	final SmtpReply authLoginUsername(string login) {
+		const(char)[] encoded = Base64.encode(cast(ubyte[]) login);
+		return parseReply(getResponse(to!string(encoded)));
+	}
+
+	/++
+	 Sends base64-encode password
+	 +/
+	final SmtpReply authLoginPassword(string password) {
+		const(char)[] encoded = Base64.encode(cast(ubyte[]) password);
+		return parseReply(getResponse(to!string(encoded)));
+	}
+
+	/++
 	 Low-level method to initiate process of sending mail.
 	 This can be called either after connect or after helo/ehlo methods call.
 	 +/

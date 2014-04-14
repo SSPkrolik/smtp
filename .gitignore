@@ -2,7 +2,7 @@
 *.a
 
 examples/lowlevel/lowlevel
-examples/lowlevel-safe/lowlevel-safe
+examples/lowlevel-tls/lowlevel-tls
 examples/lowlevel-logged/lowlevel-logged
 examples/sender/sender
 

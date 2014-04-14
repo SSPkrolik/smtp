@@ -78,6 +78,10 @@ You can find low-level API usage example projects in `examples` folder:
   Shows the simplest chain of routines to send e-mail message via
   encrypted channel.
 
+ 3. [sender](https://github.com/SSPkrolik/smtp/tree/master/examples/sender)
+  Shows how to authenticate and send a message using high-level API via
+  `MailSender` class: `connect`, `authenticate`, `send` methods.
+
 You can enter folder `examples/<example-project-name>` and perform `$ dub` in order
 to run and test example.
 

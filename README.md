@@ -69,15 +69,15 @@ For this, follow the next steps:
 
 You can find low-level API usage example projects in `examples` folder:
 
- 1. `[lowlevel](https://github.com/SSPkrolik/smtp/tree/master/examples/lowlevel)`
+ 1. [`lowlevel`](https://github.com/SSPkrolik/smtp/tree/master/examples/lowlevel)
   Shows the simplest chain of routines to send e-mail message via
   unencrypted channel.
 
- 2. `[lowlevel-tls](https://github.com/SSPkrolik/smtp/tree/master/examples/lowlevel-tls)`
+ 2. [`lowlevel-tls`](https://github.com/SSPkrolik/smtp/tree/master/examples/lowlevel-tls)
   Shows the simplest chain of routines to send e-mail message via
   encrypted channel.
 
- 3. `[sender](https://github.com/SSPkrolik/smtp/tree/master/examples/sender)`
+ 3. [`sender`](https://github.com/SSPkrolik/smtp/tree/master/examples/sender)
   Shows how to authenticate and send a message using high-level API via
   `MailSender` class: `connect`, `authenticate`, `send` methods. `MailSender`
   high-level methods provide thread-safety.

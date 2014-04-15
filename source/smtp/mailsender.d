@@ -154,6 +154,7 @@ version(ssl) {
 	 		static assert((params.length == 2) && is(A[0] == string) && is(A[1] == string));
 			auto reply = auth(authType);
 			result = reply.success ? authPlain(params[0], params[1]) : reply;
+			break;
 	 	case SmtpAuthType.LOGIN:
 	 		static assert((params.length == 2) && is(A[0] == string) && is(A[1] == string));
 			auto reply = auth(authType);
@@ -163,9 +164,10 @@ version(ssl) {
 			} else {
 				result = reply;
 			}
+			break;
 	 	}
 		_transmission_lock.unlock();
-		return reply;
+		return result;
 	 }
 
 	/++

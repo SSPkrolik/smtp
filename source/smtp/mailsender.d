@@ -1,5 +1,7 @@
 module smtp.mailsender;
 
+import core.sync.mutex;
+
 import std.algorithm;
 import std.conv;
 import std.stdio;
@@ -36,6 +38,8 @@ private:
 
 	uint _max_message_size = 0;
 
+	Mutex _transmission_lock;
+
 public:
 version(ssl) {
 	/++
@@ -44,6 +48,7 @@ version(ssl) {
 	this(string host, ushort port, EncryptionMethod encType = EncryptionMethod.None) {
 		super(host, port);
 		_encType = encType;
+		_transmission_lock = new Mutex();
 	}
 } else {
 	/++
@@ -51,6 +56,7 @@ version(ssl) {
 	 +/
 	this(string host, ushort port) {
 		super(host, port);
+		_transmission_lock = new Mutex();
 	}
 }
 
@@ -77,9 +83,12 @@ version(ssl) {
 	 in order to expose it via public API.
 	 +/
 	override SmtpReply connect() {
+		_transmission_lock.lock();
 		auto reply = super.connect();
-		if (!reply.success) return reply;
-		
+		if (!reply.success) {
+			_transmission_lock.unlock();
+			return reply;
+		}
 		// Trying to get what possibilities server supports
 		reply = ehlo();
 		foreach(line; split(strip(reply.message), "\r\n")[1 .. $ - 1]) {
@@ -124,6 +133,7 @@ version(ssl) {
 			}
 		}
 
+		_transmission_lock.unlock();
 		return reply;
 	}
 	/++
@@ -137,21 +147,25 @@ version(ssl) {
 	    | AUTH->, <-STATUS, [encoded login]->, <-STATUS, [encoded password]->, <-STATUS
 	 +/
 	 SmtpReply authenticate(A...)(in SmtpAuthType authType, A params) {
+	 	_transmission_lock.lock();
+	 	SmtpReply result;
 	 	final switch (authType) {
 	 	case SmtpAuthType.PLAIN:
 	 		static assert((params.length == 2) && is(A[0] == string) && is(A[1] == string));
 			auto reply = auth(authType);
-			return reply.success ? authPlain(params[0], params[1]) : reply;
+			result = reply.success ? authPlain(params[0], params[1]) : reply;
 	 	case SmtpAuthType.LOGIN:
 	 		static assert((params.length == 2) && is(A[0] == string) && is(A[1] == string));
 			auto reply = auth(authType);
 			if (reply.success) {
 				reply = authLoginUsername(params[0]);
-				return reply.success ? authLoginPassword(params[1]) : reply;
+				result = reply.success ? authLoginPassword(params[1]) : reply;
 			} else {
-				return reply;
+				result = reply;
 			}
 	 	}
+		_transmission_lock.unlock();
+		return reply;
 	 }
 
 	/++
@@ -167,24 +181,28 @@ version(ssl) {
 	 method calls chain.
 	 +/
 	SmtpReply send(in SmtpMessage mail) {
+		_transmission_lock.lock();
 		auto reply = this.mail(mail.sender.address);
 		if (!reply.success) return reply;
 		foreach (i, recipient; mail.recipients) {
 			reply = this.rcpt(recipient.address); 
 			if (!reply.success) {
 				this.rset();
+				_transmission_lock.unlock();
 				return reply;
 			}
 		}
 		reply = this.data(); 
 		if (!reply.success) {
 			this.rset();
+			_transmission_lock.unlock();
 			return reply;
 		}
 		reply = this.dataBody(mail.toString);
 		if (!reply.success) {
 			this.rset();
 		}
+		_transmission_lock.unlock();
 		return reply;
 	}
 }

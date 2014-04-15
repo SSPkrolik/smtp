@@ -19,15 +19,14 @@ Tested with:
    - `TLSv1`
  6. Authentication support which includes the next methods:
    - `PLAIN`
+   - `LOGIN`
 
 ## TODO
 
  1. More authentication methods.
  2. More Dedicated clients for popular mail providers, additional API simplification.
- 3. Thread-safety.
- 4. High-level client.
- 5. Unit-tests suite.
- 6. Asynchronous version (based on fibers?)
+ 3. Unit-tests suite.
+ 4. Asynchronous version (based on fibers?)
  
 ## Installation
 
@@ -80,7 +79,8 @@ You can find low-level API usage example projects in `examples` folder:
 
  3. [sender](https://github.com/SSPkrolik/smtp/tree/master/examples/sender)
   Shows how to authenticate and send a message using high-level API via
-  `MailSender` class: `connect`, `authenticate`, `send` methods.
+  `MailSender` class: `connect`, `authenticate`, `send` methods. `MailSender`
+  high-level methods provide thread-safety.
 
 You can enter folder `examples/<example-project-name>` and perform `$ dub` in order
 to run and test example.

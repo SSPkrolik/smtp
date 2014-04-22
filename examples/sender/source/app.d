@@ -11,7 +11,7 @@
  +/
 import std.stdio;
 
-import smtp.auth;
+import smtp.client;
 import smtp.mailsender;
 import smtp.message;
 
@@ -43,7 +43,4 @@ void main()
 		write(result);
 		return;
 	}
-	
-	// Bye-bye
-	sender.quit();
 }

@@ -8,7 +8,6 @@ import std.stdio;
 import std.string;
 import std.traits;
 
-import smtp.auth;
 import smtp.client;
 import smtp.message;
 import smtp.reply;
@@ -20,9 +19,11 @@ import smtp.ssl;
 /++
  High-level implementation of SMTP client.
  +/
-class MailSender : SmtpClient {
+class MailSender {
 
 private:
+	SmtpClient _smtp_client;
+
 	version(ssl) {
 	EncryptionMethod _encType;
 	}
@@ -46,7 +47,7 @@ version(ssl) {
 	 SSL-enabled constructor
 	 +/
 	this(string host, ushort port, EncryptionMethod encType = EncryptionMethod.None) {
-		super(host, port);
+		_smtp_client = new SmtpClient(host, port);
 		_encType = encType;
 		_transmission_lock = new Mutex();
 	}
@@ -55,7 +56,7 @@ version(ssl) {
 	 No-SSL constructor
 	 +/
 	this(string host, ushort port) {
-		super(host, port);
+		_smtp_client = new SmtpClient(host, port);
 		_transmission_lock = new Mutex();
 	}
 }
@@ -82,15 +83,15 @@ version(ssl) {
 	 Connecting to SMTP server and also trying to get server possibiities
 	 in order to expose it via public API.
 	 +/
-	override SmtpReply connect() {
+	SmtpReply connect() {
 		_transmission_lock.lock();
-		auto reply = super.connect();
+		auto reply = _smtp_client.connect();
 		if (!reply.success) {
 			_transmission_lock.unlock();
 			return reply;
 		}
 		// Trying to get what possibilities server supports
-		reply = ehlo();
+		reply = _smtp_client.ehlo();
 		foreach(line; split(strip(reply.message), "\r\n")[1 .. $ - 1]) {
 			auto extension = line[4 .. $];
 			switch(extension) {
@@ -129,13 +130,14 @@ version(ssl) {
 				continue;
 			}
 			if (option.startsWith("CHUNKING")) {
-
+				_server_supports_chunking = true;
+				continue;
 			}
 		}
-
 		_transmission_lock.unlock();
 		return reply;
 	}
+
 	/++
 	 Perfrom authentication process in one method (high-level) instead
 	 of sending AUTH and auth data in several messages.
@@ -152,15 +154,15 @@ version(ssl) {
 	 	final switch (authType) {
 	 	case SmtpAuthType.PLAIN:
 	 		static assert((params.length == 2) && is(A[0] == string) && is(A[1] == string));
-			auto reply = auth(authType);
-			result = reply.success ? authPlain(params[0], params[1]) : reply;
+			auto reply = _smtp_client.auth(authType);
+			result = reply.success ? _smtp_client.authPlain(params[0], params[1]) : reply;
 			break;
 	 	case SmtpAuthType.LOGIN:
 	 		static assert((params.length == 2) && is(A[0] == string) && is(A[1] == string));
-			auto reply = auth(authType);
+			auto reply = _smtp_client.auth(authType);
 			if (reply.success) {
-				reply = authLoginUsername(params[0]);
-				result = reply.success ? authLoginPassword(params[1]) : reply;
+				reply = _smtp_client.authLoginUsername(params[0]);
+				result = reply.success ? _smtp_client.authLoginPassword(params[1]) : reply;
 			} else {
 				result = reply;
 			}
@@ -184,27 +186,35 @@ version(ssl) {
 	 +/
 	SmtpReply send(in SmtpMessage mail) {
 		_transmission_lock.lock();
-		auto reply = this.mail(mail.sender.address);
+		auto reply = _smtp_client.mail(mail.sender.address);
 		if (!reply.success) return reply;
 		foreach (i, recipient; mail.recipients) {
-			reply = this.rcpt(recipient.address); 
+			reply = _smtp_client.rcpt(recipient.address); 
 			if (!reply.success) {
-				this.rset();
+				_smtp_client.rset();
 				_transmission_lock.unlock();
 				return reply;
 			}
 		}
-		reply = this.data(); 
+		reply = _smtp_client.data(); 
 		if (!reply.success) {
-			this.rset();
+			_smtp_client.rset();
 			_transmission_lock.unlock();
 			return reply;
 		}
-		reply = this.dataBody(mail.toString);
+		reply = _smtp_client.dataBody(mail.toString);
 		if (!reply.success) {
-			this.rset();
+			_smtp_client.rset();
 		}
 		_transmission_lock.unlock();
 		return reply;
+	}
+
+	/++
+	 Perform clean shutdown for allocated resources.
+	 +/
+	~this() {
+		_smtp_client.quit();
+		_smtp_client.disconnect();
 	}
 }

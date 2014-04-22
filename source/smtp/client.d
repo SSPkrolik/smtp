@@ -6,9 +6,16 @@ import std.socket;
 import std.stdio;
 import std.string;
 
-import smtp.auth;
 import smtp.reply;
 import smtp.ssl;
+
+/++
+ Authentication types supported by SMTP protocol.
+ +/
+enum SmtpAuthType {
+	PLAIN = 0,
+	LOGIN,
+};
 
 /++
  Low-level synchronous API for implementing SMTP clients.
@@ -184,7 +191,7 @@ public:
 	 Perform authentication (according to RFC 4954)
 	 +/
 	final SmtpReply auth(in SmtpAuthType authType) {
-		return parseReply(getResponse("AUTH " ~ authType));
+		return parseReply(getResponse("AUTH " ~ to!string(authType)));
 	}
 
 	/++

@@ -7,6 +7,6 @@
 		"smtp": { "version": "~master", "path": "../../" }
 	},
 	"subConfigurations": {
-		"smtp": "ssl",
+		"smtp": "no-ssl",
 	}
 }

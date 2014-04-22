@@ -40,7 +40,7 @@ For this, follow the next steps:
      ```JSON
      {
        "dependencies": {
-       		"smtp": ">=0.0.3",
+       		"smtp": ">=0.1.1",
        }
      }
      ```
@@ -90,7 +90,8 @@ to get SMTP server up and running on your local host. For that just open
 new terminal tab or window and type `sendmail`.
 
 If you want to test encrypted client, you can use `smtp.gmail.com:587` along
-with `TLSv1` encryption method.
+with `TLSv1` encryption method. Obviously this works with `ssl` configuration
+of smtp library only.
 
 Here's an example of high-level `SmtpClient` API usage for sending sample email
 either using open or encrypted channel.

@@ -214,7 +214,7 @@ version(ssl) {
 	 Perform clean shutdown for allocated resources.
 	 +/
 	~this() {
-		_smtp_client.quit();
+		//_smtp_client.quit();
 		_smtp_client.disconnect();
 	}
 }

@@ -41,57 +41,18 @@ private:
 
 	Mutex _transmission_lock;
 
-public:
-version(ssl) {
-	/++
-	 SSL-enabled constructor
-	 +/
-	this(string host, ushort port, EncryptionMethod encType = EncryptionMethod.None) {
-		_smtp_client = new SmtpClient(host, port);
-		_encType = encType;
-		_transmission_lock = new Mutex();
-	}
-} else {
-	/++
-	 No-SSL constructor
-	 +/
-	this(string host, ushort port) {
-		_smtp_client = new SmtpClient(host, port);
-		_transmission_lock = new Mutex();
-	}
-}
-
-	/++
-	 Server limits
-	 +/
-	uint maxMessageSize() const { return _max_message_size; }
-
-	/++
-	 Server-supported extensions
-	 +/
-	bool extensionPipelining() const { return _server_supports_pipelining; }
-	bool extensionVrfy() const { return _server_supports_vrfy; }
-	bool extensionEtrn() const { return _server_supports_etrn; }
-	bool extensionEnhancedStatusCodes() const { return _server_supports_enhanced_status_codes; }
-	bool extensionDsn() const { return _server_supports_dsn; }
-	bool extension8bitMime() const { return _server_supports_8bitmime; }
-	bool extensionBinaryMime() const { return _server_supports_binarymime; }
-	bool extensionChunking() const { return _server_supports_chunking; }
-	bool extensionTls() const { return _server_supports_encryption; }
-
-	/++
-	 Connecting to SMTP server and also trying to get server possibiities
-	 in order to expose it via public API.
-	 +/
-	SmtpReply connect() {
+	SmtpReply connect_impl() {
 		_transmission_lock.lock();
+		scope(exit) _transmission_lock.unlock();
 		auto reply = _smtp_client.connect();
-		if (!reply.success) {
-			_transmission_lock.unlock();
-			return reply;
-		}
+		return reply;
+	}
+
+	SmtpReply get_server_capabilities() {
+		_transmission_lock.lock();
+		scope(exit) _transmission_lock.unlock();
 		// Trying to get what possibilities server supports
-		reply = _smtp_client.ehlo();
+		auto reply = _smtp_client.ehlo();
 		foreach(line; split(strip(reply.message), "\r\n")[1 .. $ - 1]) {
 			auto extension = line[4 .. $];
 			switch(extension) {
@@ -134,9 +95,78 @@ version(ssl) {
 				continue;
 			}
 		}
-		_transmission_lock.unlock();
 		return reply;
 	}
+
+public:
+version(ssl) {
+	/++
+	 SSL-enabled constructor
+	 +/
+	this(string host, ushort port, EncryptionMethod encType = EncryptionMethod.None) {
+		_smtp_client = new SmtpClient(host, port);
+		_encType = encType;
+		_transmission_lock = new Mutex();
+	}
+} else {
+	/++
+	 No-SSL constructor
+	 +/
+	this(string host, ushort port) {
+		_smtp_client = new SmtpClient(host, port);
+		_transmission_lock = new Mutex();
+	}
+}
+
+	/++
+	 Server limits
+	 +/
+	uint maxMessageSize() const { return _max_message_size; }
+
+	/++
+	 Server-supported extensions
+	 +/
+	bool extensionPipelining() const { return _server_supports_pipelining; }
+	bool extensionVrfy() const { return _server_supports_vrfy; }
+	bool extensionEtrn() const { return _server_supports_etrn; }
+	bool extensionEnhancedStatusCodes() const { return _server_supports_enhanced_status_codes; }
+	bool extensionDsn() const { return _server_supports_dsn; }
+	bool extension8bitMime() const { return _server_supports_8bitmime; }
+	bool extensionBinaryMime() const { return _server_supports_binarymime; }
+	bool extensionChunking() const { return _server_supports_chunking; }
+	bool extensionTls() const { return _server_supports_encryption; }
+
+version(ssl){
+	/++
+	 Connecting to SMTP server and also trying to get server possibiities
+	 in order to expose it via public API.
+	 +/
+	SmtpReply connect() {
+		auto reply = connect_impl();
+		if(!reply.success) return reply;
+		
+		reply = get_server_capabilities();
+		if(!reply.success) return reply;
+		
+		_transmission_lock.lock();
+		_smtp_client.starttls();
+		_transmission_lock.unlock();
+		
+		reply = get_server_capabilities();
+		return reply;
+	}
+} else {
+	/++
+	 Connecting to SMTP server and also trying to get server possibiities
+	 in order to expose it via public API.
+	 +/
+	SmtpReply connect() {
+		auto reply = connect_impl();
+		if(!reply.success) return reply;
+		
+		return get_server_capabilities();
+	}
+}
 
 	/++
 	 Perfrom authentication process in one method (high-level) instead

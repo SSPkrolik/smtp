@@ -27,17 +27,17 @@ struct SmtpMessage {
 	string replyTo;
 
 	const string toString() {
-		string templateCc = "Cc:<%s> \"%s\"";
-		string templateResult = "From:<%s> \"%s\"\r\nTo:<%s> \"%s\"\r\n%s\r\nSubject:%s\r\nReply-To:%s\r\n\r\n%s";
+		string templateCc = "Cc:\"%s\" <%s>";
+		string templateResult = "From:\"%s\" <%s>\r\nTo:\"%s\" <%s>\r\n%s\r\nSubject:%s\r\nReply-To:%s\r\n\r\n%s";
 		string cc = "";
 		if (recipients.length > 1) {
 			foreach(recipient; recipients) {
-				cc ~= format(templateCc, recipient.address, recipient.name);
+				cc ~= format(templateCc, recipient.name, recipient.address);
 			}
 		} else {
 			cc = "Cc:";
 		}
 
-		return format(templateResult, sender.address, sender.name, recipients[0].address, recipients[0].name, cc, subject, replyTo, message);
+		return format(templateResult, sender.name, sender.address, recipients[0].name, recipients[0].address, cc, subject, replyTo, message);
 	}
 }

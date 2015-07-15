@@ -6,6 +6,7 @@ examples/lowlevel-tls/lowlevel-tls
 examples/lowlevel-logged/lowlevel-logged
 examples/sender/sender
 
+*.selections.*
 *.rdb
 __*
 .DS_Store

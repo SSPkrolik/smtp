@@ -1,6 +1,7 @@
 module smtp.message;
 
 import std.string;
+import std.uuid;
 
 import smtp.attachment;
 
@@ -21,28 +22,34 @@ struct Recipient {
   and send mail via SMTP.
  +/
 struct SmtpMessage {
+	static string boundary;
 	Recipient sender;
 	Recipient[] recipients;
 	string subject;
 	string message;
 	string replyTo;
-	string contentType = "";
-	string mimeVersion = "";
 	Attachment[] attachments;
+
+	static this() {
+		boundary = randomUUID().toString();
+	}
 
 	void attach(Attachment[] a...) {
 		attachments ~= a;
 	}
 
 	const string toString() {
-		string tFrom = "From: \"%s\" <%s>\r\n";
-		string tTo = "To: \"%s\" <%s>\r\n";
-		string tCc = "Cc:\"%s\" <%s>\r\n";
-		string tSubject = "Subject:%s\r\n";
-		string tReplyTo = "Reply-To:%s\r\n";
-		string tCRLF = "\r\n";
-		string tBody = "%s";
+		string tFrom      = "From: \"%s\" <%s>\r\n";
+		string tTo        = "To: \"%s\" <%s>\r\n";
+		string tCc        = "Cc:\"%s\" <%s>\r\n";
+		string tSubject   = "Subject:%s\r\n";
+		const string mime = "MIME-Version: 1.0";
+		string tMultipart = "Content-Type: multipart/mixed;\r\n";
+		string tReplyTo   = "Reply-To:%s\r\n";
+		const string crlf = "\r\n";
+		string tBody      = "%s";
 
+		// Format list of copies to send
 		string cc = "";
 		if (recipients.length > 1) {
 			foreach(recipient; recipients) {
@@ -52,12 +59,24 @@ struct SmtpMessage {
 			cc = "";
 		}
 
-		return format(tFrom, sender.name, sender.address)
+		if (!attachments.length) {
+			return format(tFrom, sender.name, sender.address)
    			 ~ format(tTo, recipients[0].name, recipients[0].address)
 				 ~ cc
 				 ~ format(tSubject, subject)
 				 ~ format(tReplyTo, replyTo)
-				 ~ tCRLF
-				 ~ format(tBody, message);
+				 ~ crlf
+				 ~ ""; //this.messageWithoutAttachments();
+		} else {
+			return format(tFrom, sender.name, sender.address)
+				 ~ format(tTo, recipients[0].name, recipients[0].address)
+				 ~ cc
+				 ~ format(tSubject, subject)
+				 ~ mime
+				 ~ tMultipart
+				 ~ format(tReplyTo, replyTo)
+				 ~ ""  //this.messageWithAttachments()
+				 ~ ""; //this.stringAttachments();
+		}
 	}
 }

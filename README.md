@@ -3,8 +3,7 @@
 Native synchronous SMTP client implementation in D language. Get at official Dub repository: [code.dlang.org](http://code.dlang.org/packages/smtp)
 
 Tested with:
- - `gdc-4.8` `dmd-2.065.0` on Ubuntu 13.10
- - `dmd-2.065.0` on OS X 10.9.2
+ - `dmd-2.066.0` stable on Ubuntu 15.04 Vivid Vervet
 
 ## Features
 
@@ -85,8 +84,8 @@ You can find low-level API usage example projects in `examples` folder:
 
  3. [`sender`](https://github.com/SSPkrolik/smtp/tree/master/examples/sender)
   Shows how to authenticate and send a message using high-level API via
-  `MailSender` class: `connect`, `authenticate`, `send` methods. `MailSender`
-  high-level methods provide thread-safety.
+  `MailSender` class: `connect`, `authenticate`, `send`, and `quit` methods.
+  `MailSender` high-level methods provide thread-safety.
 
 You can enter folder `examples/<example-project-name>` and perform `$ dub` in order
 to run and test example.

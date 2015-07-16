@@ -19,6 +19,7 @@ Tested with:
  6. Authentication support which includes the next methods:
    - `PLAIN`
    - `LOGIN`
+ 7. `SmtpAttachment` struct that implements attachments via `MailSender.attach()` member function.
 
 ## TODO
 

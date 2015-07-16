@@ -38,6 +38,9 @@ struct SmtpMessage {
 		attachments ~= a;
 	}
 
+	/++
+	  Builds string representation for a list of copies-to-send over SMTP.
+	 +/
 	private string cc() const {
 		string tCc = "Cc:\"%s\" <%s>\r\n";
 		string cc = "";
@@ -51,6 +54,10 @@ struct SmtpMessage {
 		return cc;
 	}
 
+	/++
+	  Builds message representation in case we have multipart/mixed MIME-type
+		of the message to send.
+	 +/
 	private string messageWithAttachments() const {
 		const string crlf = "\r\n";
 		return boundary ~ crlf
@@ -60,6 +67,9 @@ struct SmtpMessage {
 			~ crlf;
 	}
 
+	/++
+	 Partly converts attachments to string for SMTP protocol representation
+	 +/
 	private string attachmentsToString() const {
 		string result = "";
 		foreach(ref a; attachments) {
@@ -68,6 +78,12 @@ struct SmtpMessage {
 		return result;
 	}
 
+	/++
+	  This method converts SmtpMessage struct to string representation.
+
+		This string representation is a ready-to-send representation for
+		SMTP protocol.
+	 +/
 	string toString() const {
 		const string tFrom      = "From: \"%s\" <%s>\r\n";
 		const string tTo        = "To: \"%s\" <%s>\r\n";

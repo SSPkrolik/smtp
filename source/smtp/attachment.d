@@ -9,7 +9,7 @@ import std.string;
  */
 struct Attachment
 {
-  string title;
+  string filename;
   ubyte[] bytes;
 
   /++
@@ -18,12 +18,12 @@ struct Attachment
     The representaiton is ready to be injected into the formatted
     SMTP message.
    +/
-  string toString(const string boundary) const {
+  string toString(in string boundary) const {
     const string crlf = "\r\n";
     return boundary ~ crlf
       ~ "Content-Type: application/octet-stream" ~ crlf
       ~ "Content-Transfer-Encoding: base64" ~ crlf
-      ~ "Content-Disposition: attachment; filename=\"" ~ title ~ "\"" ~ crlf ~ crlf
+      ~ "Content-Disposition: attachment; filename=\"" ~ filename ~ "\"" ~ crlf ~ crlf
       ~ to!string(Base64.encode(bytes)) ~ crlf
       ~ boundary ~ crlf
       ~ crlf;

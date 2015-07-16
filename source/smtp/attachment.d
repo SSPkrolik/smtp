@@ -18,7 +18,7 @@ struct Attachment
     The representaiton is ready to be injected into the formatted
     SMTP message.
    +/
-  string toString(const string boundary) {
+  string toString(const string boundary) const {
     const string crlf = "\r\n";
     return boundary ~ crlf
       ~ "Content-Type: application/octet-stream" ~ crlf

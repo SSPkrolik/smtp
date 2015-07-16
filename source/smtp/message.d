@@ -38,18 +38,8 @@ struct SmtpMessage {
 		attachments ~= a;
 	}
 
-	const string toString() {
-		string tFrom      = "From: \"%s\" <%s>\r\n";
-		string tTo        = "To: \"%s\" <%s>\r\n";
-		string tCc        = "Cc:\"%s\" <%s>\r\n";
-		string tSubject   = "Subject:%s\r\n";
-		const string mime = "MIME-Version: 1.0";
-		string tMultipart = "Content-Type: multipart/mixed;\r\n";
-		string tReplyTo   = "Reply-To:%s\r\n";
-		const string crlf = "\r\n";
-		string tBody      = "%s";
-
-		// Format list of copies to send
+	private string cc() const {
+		string tCc = "Cc:\"%s\" <%s>\r\n";
 		string cc = "";
 		if (recipients.length > 1) {
 			foreach(recipient; recipients) {
@@ -58,24 +48,43 @@ struct SmtpMessage {
 		} else {
 			cc = "";
 		}
+		return cc;
+	}
+
+	string messageWithAttachments() const {
+		return "";
+	}
+
+	string attachmentsToString() const {
+		return "";
+	}
+
+	string toString() const {
+		const string tFrom      = "From: \"%s\" <%s>\r\n";
+		const string tTo        = "To: \"%s\" <%s>\r\n";
+		const string tSubject   = "Subject:%s\r\n";
+		const string mime = "MIME-Version: 1.0";
+		const string tMultipart = format("Content-Type: multipart/mixed;\r\n boundary=\"%s\"\r\n", SmtpMessage.boundary);
+		const string tReplyTo   = "Reply-To:%s\r\n";
+		const string crlf = "\r\n";
 
 		if (!attachments.length) {
 			return format(tFrom, sender.name, sender.address)
    			 ~ format(tTo, recipients[0].name, recipients[0].address)
-				 ~ cc
+				 ~ cc()
 				 ~ format(tSubject, subject)
 				 ~ format(tReplyTo, replyTo)
 				 ~ crlf
-				 ~ ""; //this.messageWithoutAttachments();
+				 ~ message;
 		} else {
 			return format(tFrom, sender.name, sender.address)
 				 ~ format(tTo, recipients[0].name, recipients[0].address)
-				 ~ cc
+				 ~ cc()
 				 ~ format(tSubject, subject)
 				 ~ mime
 				 ~ tMultipart
 				 ~ format(tReplyTo, replyTo)
-				 ~ ""  //this.messageWithAttachments()
+				 ~ this.messageWithAttachments()
 				 ~ ""; //this.stringAttachments();
 		}
 	}

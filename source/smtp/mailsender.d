@@ -233,7 +233,7 @@ version(ssl){
 			_transmission_lock.unlock();
 			return reply;
 		}
-		reply = _smtp_client.dataBody(mail.toString);
+		reply = _smtp_client.dataBody(mail.toString());
 		if (!reply.success) {
 			_smtp_client.rset();
 		}

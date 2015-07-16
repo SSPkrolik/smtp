@@ -22,14 +22,20 @@ struct Recipient {
   and send mail via SMTP.
  +/
 struct SmtpMessage {
-	static string boundary;
-	Recipient sender;
-	Recipient[] recipients;
-	string subject;
-	string message;
-	string replyTo;
-	SmtpAttachment[] attachments;
+	static string boundary;        // Parts delmiter in multipart message
+	Recipient sender;              // Specifies name/address of a sender
+	Recipient[] recipients;        // Specifies names/adresses of recipients
+	string subject;                // Message subject
+	string message;                // Message text (body)
+	string replyTo;                // Messages chains maked (reply-to:)
+	SmtpAttachment[] attachments;  // Attachments to message
 
+	/++
+	  Initializes boundary for parts in multipart/mixed message type.
+
+		Boundary is a random sequence of chars that must divide message
+		into parts: message, and attachments.
+	 +/
 	static this() {
 		boundary = randomUUID().toString();
 	}

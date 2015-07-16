@@ -28,13 +28,13 @@ struct SmtpMessage {
 	string subject;
 	string message;
 	string replyTo;
-	Attachment[] attachments;
+	SmtpAttachment[] attachments;
 
 	static this() {
 		boundary = randomUUID().toString();
 	}
 
-	void attach(Attachment[] a...) {
+	void attach(SmtpAttachment[] a...) {
 		attachments ~= a;
 	}
 

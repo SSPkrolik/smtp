@@ -7,7 +7,7 @@ import std.string;
 /**
   Implements mail message attachment.
  */
-struct Attachment
+struct SmtpAttachment
 {
   string filename;
   ubyte[] bytes;

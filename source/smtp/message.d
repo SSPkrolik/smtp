@@ -51,12 +51,21 @@ struct SmtpMessage {
 		return cc;
 	}
 
-	string messageWithAttachments() const {
-		return "";
+	private string messageWithAttachments() const {
+		const string crlf = "\r\n";
+		return boundary ~ crlf
+			~ "Content-Type: text/plain; charset=utf-8" ~ crlf
+			~ crlf
+			~ message ~ crlf
+			~ crlf;
 	}
 
-	string attachmentsToString() const {
-		return "";
+	private string attachmentsToString() const {
+		string result = "";
+		foreach(ref a; attachments) {
+			result ~= a.toString(boundary);
+		}
+		return result;
 	}
 
 	string toString() const {
@@ -64,7 +73,7 @@ struct SmtpMessage {
 		const string tTo        = "To: \"%s\" <%s>\r\n";
 		const string tSubject   = "Subject:%s\r\n";
 		const string mime = "MIME-Version: 1.0";
-		const string tMultipart = format("Content-Type: multipart/mixed;\r\n boundary=\"%s\"\r\n", SmtpMessage.boundary);
+		const string tMultipart = format("Content-Type: multipart/mixed;\r\n boundary=\"%s\"\r\n\r\n", SmtpMessage.boundary);
 		const string tReplyTo   = "Reply-To:%s\r\n";
 		const string crlf = "\r\n";
 
@@ -84,8 +93,8 @@ struct SmtpMessage {
 				 ~ mime
 				 ~ tMultipart
 				 ~ format(tReplyTo, replyTo)
-				 ~ this.messageWithAttachments()
-				 ~ ""; //this.stringAttachments();
+				 ~ messageWithAttachments()
+				 ~ attachmentsToString();
 		}
 	}
 }

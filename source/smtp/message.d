@@ -6,7 +6,6 @@ import std.string;
  Struct that holds name and address of a person holding e-mail box
   and is capable of sending messages.
  +/
-
 struct Recipient {
 	string address;
 	string name;

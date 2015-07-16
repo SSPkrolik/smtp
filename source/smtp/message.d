@@ -2,6 +2,8 @@ module smtp.message;
 
 import std.string;
 
+import smtp.attachment;
+
 /++
  Struct that holds name and address of a person holding e-mail box
   and is capable of sending messages.
@@ -24,19 +26,40 @@ struct SmtpMessage {
 	string subject;
 	string message;
 	string replyTo;
+	string contentType = "";
+	string mimeVersion = "";
+	Attachment[] attachments;
+
+	void attach(Attachment[] a...) {
+		foreach(ref attachment; a) {
+			// TODO: add
+		}
+	}
 
 	const string toString() {
-		string templateCc = "Cc:\"%s\" <%s>";
-		string templateResult = "From:\"%s\" <%s>\r\nTo:\"%s\" <%s>\r\n%s\r\nSubject:%s\r\nReply-To:%s\r\n\r\n%s";
+		string tFrom = "From: \"%s\" <%s>\r\n";
+		string tTo = "To: \"%s\" <%s>\r\n";
+		string tCc = "Cc:\"%s\" <%s>\r\n";
+		string tSubject = "Subject:%s\r\n";
+		string tReplyTo = "Reply-To:%s\r\n";
+		string tCRLF = "\r\n";
+		string tBody = "%s";
+
 		string cc = "";
 		if (recipients.length > 1) {
 			foreach(recipient; recipients) {
-				cc ~= format(templateCc, recipient.name, recipient.address);
+				cc ~= format(tCc, recipient.name, recipient.address);
 			}
 		} else {
-			cc = "Cc:";
+			cc = "";
 		}
 
-		return format(templateResult, sender.name, sender.address, recipients[0].name, recipients[0].address, cc, subject, replyTo, message);
+		return format(tFrom, sender.name, sender.address)
+   			 ~ format(tTo, recipients[0].name, recipients[0].address)
+				 ~ cc
+				 ~ format(tSubject, subject)
+				 ~ format(tReplyTo, replyTo)
+				 ~ tCRLF
+				 ~ format(tBody, message);
 	}
 }

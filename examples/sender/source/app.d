@@ -1,6 +1,6 @@
 /++
  Example: smtp library `MailSender` high-level API usage.
- 
+
  Typical workflow is: connect() -> [authenticate()] -> send() x n -> quit()
 
  Working with SMTP server via MailSender over non-encrypted communication channel.
@@ -39,6 +39,9 @@ void main()
 		// Performs message transmission sequence with error checking.
 		// In case message cannot be sent, `rset` method is called implicitly.
 		write(sender.send(message));
+
+    // Perform finalization and cleanup
+    sender.quit();
 	} else {
 		write(result);
 		return;

@@ -81,7 +81,7 @@ protected:
 	 +/
 	string receiveData() {
 		// SSL Enabled
-		version(ssl) {  
+		version(ssl) {
 			if (!this._secure) {
 				ptrdiff_t bytesReceived = this.transport.receive(_recvbuf);
 				return to!string(_recvbuf[0 .. bytesReceived]);
@@ -105,10 +105,10 @@ protected:
 			(rawReply[3 .. $]).idup
 		);
 		if (reply.code >= 400) {
-			reply.success = false;			
+			reply.success = false;
 		}
 		return reply;
-	} 
+	}
 
 	/++
 	 Implementation of request/response pattern for easifying
@@ -230,7 +230,7 @@ public:
 
 	/++
 	 Low-level method to specify recipients of the mail. Must be called
-	 after 
+	 after
 	 +/
 	final SmtpReply rcpt(string to) {
 		return parseReply(getResponse("RCPT TO:<" ~ to ~ ">"));
@@ -264,7 +264,7 @@ public:
 	 This method asks server to verify if the user's mailbox exists on server.
 	 You can pass [username] or <[e-mail]> as an argument. The result is a reply
 	 that contains e-mail of the user, or an error code.
-	 
+
 	 IMPORTANT NOTE: most of servers forbid using of VRFY considering it to
 	 be a security hole.
 	 +/

@@ -11,14 +11,15 @@
 import std.stdio;
 
 import smtp.client;
-
+import smtp.mailsender;
+import smtp.reply;
 
 void main()
 {
 	// SmtpClient instantiation (Second parameter is a port, '25' by default
 	// for non-SSL connections). Low-level client API.
 	auto client = new SmtpClient("localhost");
-	
+
 	// All public methods except `disconnect` return SmtpReply struct instance
 	// that has bool `success` field indicating request/operation result.
 	if(!client.connect().success) { // Connecting to server
@@ -36,7 +37,7 @@ void main()
 	// to several people, you have to call `rcpt()` method for each
 	// letter recipient.
 	write("RCPT message:", client.rcpt("to@example.com").message); // Telling server who must receive our e-mail
-	
+
 	// `data()` method initiates transmission of your letter's body. Also check
 	// `SmtpReply` last field `code` which returns request/operation result
 	// code according to standard.
@@ -50,7 +51,7 @@ void main()
 
 	// Transmitting data body to server
 	client.dataBody("Subject: Test subject\r\n\r\nTest message");  // Sending message body
-	
+
 	// Telling SMTP server we're finishing communication
 	write(client.quit());
 

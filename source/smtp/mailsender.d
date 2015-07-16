@@ -1,5 +1,6 @@
 module smtp.mailsender;
 
+import core.exception;
 import core.sync.mutex;
 
 import std.algorithm;
@@ -144,14 +145,14 @@ version(ssl){
 	SmtpReply connect() {
 		auto reply = connect_impl();
 		if(!reply.success) return reply;
-		
+
 		reply = get_server_capabilities();
 		if(!reply.success) return reply;
-		
+
 		_transmission_lock.lock();
 		_smtp_client.starttls();
 		_transmission_lock.unlock();
-		
+
 		reply = get_server_capabilities();
 		return reply;
 	}
@@ -163,7 +164,7 @@ version(ssl){
 	SmtpReply connect() {
 		auto reply = connect_impl();
 		if(!reply.success) return reply;
-		
+
 		return get_server_capabilities();
 	}
 }
@@ -219,14 +220,14 @@ version(ssl){
 		auto reply = _smtp_client.mail(mail.sender.address);
 		if (!reply.success) return reply;
 		foreach (i, recipient; mail.recipients) {
-			reply = _smtp_client.rcpt(recipient.address); 
+			reply = _smtp_client.rcpt(recipient.address);
 			if (!reply.success) {
 				_smtp_client.rset();
 				_transmission_lock.unlock();
 				return reply;
 			}
 		}
-		reply = _smtp_client.data(); 
+		reply = _smtp_client.data();
 		if (!reply.success) {
 			_smtp_client.rset();
 			_transmission_lock.unlock();
@@ -241,10 +242,22 @@ version(ssl){
 	}
 
 	/++
+	 High-level method for sending 'quit' message to SMTP server.
+
+	 This method must be performed in order to notify server that
+	 the client is going to finish its work with it.
+	+/
+	SmtpReply quit() {
+		_transmission_lock.lock();
+		auto reply = _smtp_client.quit();
+		_transmission_lock.unlock();
+		return reply;
+	}
+
+	/++
 	 Perform clean shutdown for allocated resources.
 	 +/
 	~this() {
-		//_smtp_client.quit();
 		_smtp_client.disconnect();
 	}
 }

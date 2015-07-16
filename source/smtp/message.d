@@ -31,9 +31,7 @@ struct SmtpMessage {
 	Attachment[] attachments;
 
 	void attach(Attachment[] a...) {
-		foreach(ref attachment; a) {
-			// TODO: add
-		}
+		attachments ~= a;
 	}
 
 	const string toString() {

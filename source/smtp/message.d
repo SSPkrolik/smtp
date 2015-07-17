@@ -40,6 +40,9 @@ struct SmtpMessage {
 		boundary = randomUUID().toString();
 	}
 
+	/++
+	  Add attachments to the `SmtpMessage`.
+	 +/
 	void attach(SmtpAttachment[] a...) {
 		attachments ~= a;
 	}

@@ -27,6 +27,10 @@ void main()
 		return;
 	}
 
+	// Let's say hello, some mail servers do not want to work with
+	// not polite clients.
+	write("Saying hello: ", client.helo());
+
 	// You can use write to log `SmtpReply` instances. This function
 	// implicitly uses `toString()` method to convert struct to string.
 	// Resulting string is equal to the raw reply text came from SMTP server.
@@ -50,7 +54,7 @@ void main()
 	}
 
 	// Transmitting data body to server
-	client.dataBody("Subject: Test subject\r\n\r\nTest message");  // Sending message body
+	write(client.dataBody("Subject: Test subject\r\n\r\nTest message"));
 
 	// Telling SMTP server we're finishing communication
 	write(client.quit());

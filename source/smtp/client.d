@@ -1,5 +1,6 @@
 module smtp.client;
 
+import std.algorithm;
 import std.base64;
 import std.conv;
 import std.socket;
@@ -116,7 +117,13 @@ protected:
 	 +/
 	string getResponse(string command, string suffix="\r\n") {
 		sendData(command ~ suffix);
-		return receiveData();
+		auto response = "";
+		while (!response.endsWith("\n")) {
+			auto received = receiveData();
+			response ~= received;
+			if (received == "") break;
+		}
+		return response;
 	}
 
 public:

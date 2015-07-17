@@ -83,7 +83,7 @@ struct SmtpMessage {
 		foreach(ref a; attachments) {
 			result ~= a.toString(boundary);
 		}
-		return result;
+		return result[0..$ - 2] ~ ".\r\n";
 	}
 
 	/++
@@ -108,7 +108,7 @@ struct SmtpMessage {
 				 ~ format(tSubject, subject)
 				 ~ format(tReplyTo, replyTo)
 				 ~ crlf
-				 ~ message;
+				 ~ message ~ "." ~ crlf;
 		} else {
 			return format(tFrom, sender.name, sender.address)
 				 ~ format(tTo, recipients[0].name, recipients[0].address)

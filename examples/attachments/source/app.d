@@ -43,7 +43,7 @@ void main()
 		write(sender.send(message));
 
     // Perform finalization and cleanup
-    sender.quit();
+    write(sender.quit());
 	} else {
 		write(result);
 		return;

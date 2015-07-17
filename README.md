@@ -1,16 +1,16 @@
-## SMTP library for D - version 0.2.1
+## SMTP library for D - version 0.3
 
 Native synchronous SMTP client implementation in D language. Get at official Dub repository: [code.dlang.org](http://code.dlang.org/packages/smtp)
 
 Tested with:
  - `dmd-2.066.0` stable on Ubuntu 15.04 Vivid Vervet
 
-## Features
+## Features Supported
 
- 1. `SmtpClient` class that implements SMTP client (mostly low-level functions)
- 2. `MailSender` class that implements simplified API
- 3. `GMailSender` is a `MailSender` predefined to use GMail's smtp gateway (**ssl** version only)
- 4. `SmtpMessage` class that implements SMTP message fields storage
+ 1. Low-level SMTP client via `SmtpClient`.
+ 2. High-level SMTP client via `MailSender`.
+ 3. Dedicated GMail SMTP gateway client via `GMailSender` (**ssl** version only)
+ 4. Attachments support.
  5. `SSL/TLS` encryption support (via `OpenSSL`). Next encryption methods implemented:
    - `SSLv2`
    - `SSLv23`
@@ -19,14 +19,14 @@ Tested with:
  6. Authentication support which includes the next methods:
    - `PLAIN`
    - `LOGIN`
- 7. `SmtpAttachment` struct that implements attachments via `MailSender.attach()` member function.
 
 ## TODO
 
- 1. More authentication methods.
- 2. More Dedicated clients for popular mail providers, additional API simplification.
- 3. Unit-tests suite.
- 4. Asynchronous version (based on fibers?)
+ * More authentication methods.
+ * More Dedicated clients for popular mail providers, additional API simplification.
+ * Unit-tests suite.
+ * Asynchronous version of the library.
+ * Chunking support.
 
 ## Installation
 
@@ -87,6 +87,10 @@ You can find low-level API usage example projects in `examples` folder:
   Shows how to authenticate and send a message using high-level API via
   `MailSender` class: `connect`, `authenticate`, `send`, and `quit` methods.
   `MailSender` high-level methods provide thread-safety.
+
+ 4. [`attachments`](https://github.com/SSPkrlik/smtp/tree/master/examples/attachments)
+  Shows how to send messages with attachments using `MailSender` class via
+  `attach` method and `SmtpAttachment` structure.
 
 You can enter folder `examples/<example-project-name>` and perform `$ dub` in order
 to run and test example.

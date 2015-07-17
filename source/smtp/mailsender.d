@@ -88,10 +88,12 @@ private:
 		foreach(line; split(strip(reply.message), "\r\n")[1 .. $]) {
 			auto option = line[4 .. $];
 			if (option.startsWith("SIZE")) {
-				_max_message_size = to!int(line[9 .. $]);
+  			try	{
+					_max_message_size = to!int(line[9 .. $]);
+				} catch (RangeError) {
+				}
 				continue;
-			}
-			if (option.startsWith("CHUNKING")) {
+			} else if (option.startsWith("CHUNKING")) {
 				_server_supports_chunking = true;
 				continue;
 			}

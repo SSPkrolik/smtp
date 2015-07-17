@@ -20,12 +20,10 @@ struct SmtpAttachment
    +/
   string toString(in string boundary) const {
     const string crlf = "\r\n";
-    return boundary ~ crlf
-      ~ "Content-Type: application/octet-stream" ~ crlf
+    return "Content-Type: application/octet-stream" ~ crlf
       ~ "Content-Transfer-Encoding: base64" ~ crlf
       ~ "Content-Disposition: attachment; filename=\"" ~ filename ~ "\"" ~ crlf ~ crlf
       ~ to!string(Base64.encode(bytes)) ~ crlf
-      ~ boundary ~ crlf
-      ~ crlf;
+      ~ "--" ~ boundary ~ crlf;
   }
 }

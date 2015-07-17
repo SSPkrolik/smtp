@@ -5,6 +5,7 @@ examples/lowlevel/lowlevel
 examples/lowlevel-tls/lowlevel-tls
 examples/lowlevel-logged/lowlevel-logged
 examples/sender/sender
+examples/attachments/attachments
 
 *.selections.*
 *.rdb

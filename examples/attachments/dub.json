@@ -1,0 +1,12 @@
+{
+	"name": "attachments",
+	"description": "Attachments API usage example.",
+	"copyright": "Copyright © 2014-2015, Rostyslav Dzinko",
+	"authors": ["Rostyslav Dzinko"],
+	"dependencies": {
+		"smtp": { "version": "~master", "path": "../../" }
+	},
+	"subConfigurations": {
+		"smtp": "no-ssl",
+	}
+}

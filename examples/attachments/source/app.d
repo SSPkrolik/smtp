@@ -1,17 +1,13 @@
 /++
- Example: smtp library `MailSender` high-level API usage.
+ Example: smtp library attachments API usage.
 
- Typical workflow is: connect() -> [authenticate()] -> send() x n -> quit()
-
- Working with SMTP server via MailSender over non-encrypted communication channel.
- Here we send sample letter using SMTP protocol.
-
- ! WARNING ! You can mention strange code here, which is though made in such a special
- manner to demonstrate as much features of the library as possible.
+ Working with SMTP server via MailSender over non-encrypted communication
+ channel. Here we send sample letter with attachments using SMTP protocol.
  +/
+import std.file;
 import std.stdio;
 
-import smtp.client;
+import smtp.attachment;
 import smtp.mailsender;
 import smtp.message;
 
@@ -23,9 +19,6 @@ void main()
 	// Connecting to server
 	auto result = sender.connect();
 	if (result.success) {
-		// Performing authentication using PLAIN method with login and password
-		write(sender.authenticate(SmtpAuthType.PLAIN, "login", "password"));
-
 		// Creating `SmtpMessage` - convinient struct to create valid formed SMTP message
 		auto message = SmtpMessage(
 			Recipient("from@example.com", "From"),
@@ -34,6 +27,15 @@ void main()
 			"This is a message body",
 			"replyto@example.com",
 		);
+
+    // Reading contents of the file to create attachment
+    auto bytes = cast(ubyte[])read("dlang.jpg");
+
+    // Creating attachment instance
+    auto attachment = SmtpAttachment("dlang.jpg", bytes);
+
+    // Attaching file contents along with filename to the message
+    message.attach(attachment, attachment, attachment);
 
 		// Smart method to send message.
 		// Performs message transmission sequence with error checking.

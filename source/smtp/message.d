@@ -69,11 +69,10 @@ struct SmtpMessage {
 	 +/
 	private string messageWithAttachments() const {
 		const string crlf = "\r\n";
-		return boundary ~ crlf
-			~ "Content-Type: text/plain; charset=utf-8" ~ crlf
+		return "Content-Type: text/plain; charset=utf-8" ~ crlf
 			~ crlf
 			~ message ~ crlf
-			~ crlf;
+			~ crlf ~ "--" ~ SmtpMessage.boundary ~ crlf;
 	}
 
 	/++
@@ -96,11 +95,11 @@ struct SmtpMessage {
 	string toString() const {
 		const string tFrom      = "From: \"%s\" <%s>\r\n";
 		const string tTo        = "To: \"%s\" <%s>\r\n";
-		const string tSubject   = "Subject:%s\r\n";
-		const string mime = "MIME-Version: 1.0";
-		const string tMultipart = format("Content-Type: multipart/mixed;\r\n boundary=\"%s\"\r\n\r\n", SmtpMessage.boundary);
+		const string tSubject   = "Subject: %s\r\n";
+		const string mime       = "MIME-Version: 1.0\r\n";
+		const string tMultipart = format("Content-Type: multipart/mixed; boundary=\"%s\"\r\n", SmtpMessage.boundary);
 		const string tReplyTo   = "Reply-To:%s\r\n";
-		const string crlf = "\r\n";
+		const string crlf       = "\r\n";
 
 		if (!attachments.length) {
 			return format(tFrom, sender.name, sender.address)
@@ -117,7 +116,8 @@ struct SmtpMessage {
 				 ~ format(tSubject, subject)
 				 ~ mime
 				 ~ tMultipart
-				 ~ format(tReplyTo, replyTo)
+				 ~ format(tReplyTo, replyTo) ~ crlf
+				 ~ "--" ~ boundary ~ crlf
 				 ~ messageWithAttachments()
 				 ~ attachmentsToString();
 		}

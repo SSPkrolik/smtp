@@ -97,7 +97,7 @@ struct SmtpMessage {
 		const string tTo        = "To: \"%s\" <%s>\r\n";
 		const string tSubject   = "Subject: %s\r\n";
 		const string mime       = "MIME-Version: 1.0\r\n";
-		const string tMultipart = format("Content-Type: multipart/mixed; charset=utf-8; boundary=\"%s\"\r\n", SmtpMessage.boundary);
+		const string tMultipart = format("Content-Type: multipart/mixed; boundary=\"%s\"\r\n", SmtpMessage.boundary);
 		const string tReplyTo   = "Reply-To:%s\r\n";
 		const string crlf       = "\r\n";
 

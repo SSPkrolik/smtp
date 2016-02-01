@@ -69,7 +69,7 @@ struct SmtpMessage {
 	 +/
 	private string messageWithAttachments() const {
 		const string crlf = "\r\n";
-		return "Content-Type: text/plain; charset=utf-8" ~ crlf
+		return "Content-Type: text/html; charset=utf-8" ~ crlf
 			~ crlf
 			~ message ~ crlf
 			~ crlf ~ "--" ~ SmtpMessage.boundary ~ crlf;

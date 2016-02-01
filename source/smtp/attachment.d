@@ -11,6 +11,7 @@ struct SmtpAttachment
 {
   string filename;
   ubyte[] bytes;
+  string cid;
 
   /++
     Returns plain base64 represenation of the attachment.
@@ -21,6 +22,7 @@ struct SmtpAttachment
   string toString(in string boundary) const {
     const string crlf = "\r\n";
     return "Content-Type: application/octet-stream" ~ crlf
+    	~ ((cid !is null) ? "Content-ID: <" ~ cid ~ ">" : "") ~ crlf
       ~ "Content-Transfer-Encoding: base64" ~ crlf
       ~ "Content-Disposition: attachment; filename=\"" ~ filename ~ "\"" ~ crlf ~ crlf
       ~ to!string(Base64.encode(bytes)) ~ crlf

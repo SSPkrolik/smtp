@@ -145,6 +145,10 @@ public:
 	 connect is the first method to be called after SmtpClient instantiation.
 	 +/
 	SmtpReply connect() {
+
+		if (this.server is null)		
+			return SmtpReply(false, 0, "");
+	
 		try {
 			this.transport.connect(this.server);
 		} catch (SocketOSException) {
